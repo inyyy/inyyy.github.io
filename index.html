@@ -1,343 +1,161 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  
-  
-  <title>Hexo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Hexo">
-<meta property="og:url" content="http://example.com/index.html">
-<meta property="og:site_name" content="Hexo">
-<meta property="og:locale" content="en_US">
-<meta property="article:author" content="John Doe">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>web sec</title><meta name="author" content="inyyy"><meta name="copyright" content="inyyy"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta property="og:type" content="website">
+<meta property="og:title" content="web sec">
+<meta property="og:url" content="https://inyyy.github.io/project/index.html">
+<meta property="og:site_name" content="web sec">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://inyyy.github.io/project/img/butterfly-icon.png">
+<meta property="article:author" content="inyyy">
 <meta name="twitter:card" content="summary">
-  
-    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
-  
-  
-    <link rel="shortcut icon" href="/favicon.png">
-  
-  
-  
-<link rel="stylesheet" href="/css/style.css">
+<meta name="twitter:image" content="https://inyyy.github.io/project/img/butterfly-icon.png"><script type="application/ld+json"></script><link rel="shortcut icon" href="/project/img/favicon.png"><link rel="canonical" href="https://inyyy.github.io/project/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/project/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
 
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
   
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
     
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
-
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
   
-  
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
-
-<meta name="generator" content="Hexo 8.0.0"></head>
-
-<body>
-  <div id="container">
-    <div id="wrap">
-      <header id="header">
-  <div id="banner"></div>
-  <div id="header-outer" class="outer">
-    <div id="header-title" class="inner">
-      <h1 id="logo-wrap">
-        <a href="/" id="logo">Hexo</a>
-      </h1>
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/project/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'web sec',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'home'
+}</script><meta name="generator" content="Hexo 8.0.0"></head><body><div class="page" id="body-wrap"><header class="full_page" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/project/"><span class="site-name">web sec</span></a></span><div id="menus"></div></nav><div id="site-info"><h1 id="site-title">web sec</h1></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/project/2025/09/27/drupal-7-DC-1-%E9%9D%B6%E5%9C%BA%E6%B5%8B%E8%AF%95/" title="drupal 7 DC-1 靶场测试">drupal 7 DC-1 靶场测试</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-09-27T14:24:02.000Z" title="发表于 2025-09-27 22:24:02">2025-09-27</time></span></div><div class="content">drupal 7 DC-1靶场渗透记录信息收集部分节约时间的话可以在火狐安装wappalyzer  插件 可直接查看网站的一些信息 不过信息很少 一：信息收集先用nmap扫描网段192.168.56.0上存货的主机，去找到攻击的机器，扫描完主机后扫描目标ip上是否有可用的端口信息，当存货的主机很多难以判断时我们可以通过mac地址去判断，mac地址就相当于计算机的身份证，扫描到的信息上可以看到这个web服务的框架，是drupal 7版本的，可以去网上查一下是否有现成的漏洞，找现成的exp去打  这里扫出来的端口没有一个有用的 充分利用工具，除了扫描端口之外还可以用目录扫描工具看一下有没有可以访问的文件去提取一下i信息  根据扫到的存活主机进入到主站  主站有一个登录框，这里是动态的，和后端数据库存在交互，可以尝试sql注入一下，用万能钥匙爆破，也可以弱密码爆破（不过要小心ip被ban） 在主站看一下相关功能，看有没有可以利用的来获得信息的功能，这里有一个注册账号功能，可以注册一个账户看看，还有一个修改密码的功能，不过没有邮箱，利用率不大 二，利用msf进行exp这里主站是一个dru...</div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/project/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/project/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">inyyy</div><div class="author-info-description"></div><div class="site-data"><a href="/project/archives/"><div class="headline">文章</div><div class="length-num">1</div></a><a href="/project/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/project/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/project/2025/09/27/drupal-7-DC-1-%E9%9D%B6%E5%9C%BA%E6%B5%8B%E8%AF%95/" title="drupal 7 DC-1 靶场测试">drupal 7 DC-1 靶场测试</a><time datetime="2025-09-27T14:24:02.000Z" title="发表于 2025-09-27 22:24:02">2025-09-27</time></div></div></div></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
       
     </div>
-    <div id="header-inner" class="inner">
-      <nav id="main-nav">
-        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
-        
-          <a class="main-nav-link" href="/">Home</a>
-        
-          <a class="main-nav-link" href="/archives">Archives</a>
-        
-      </nav>
-      <nav id="sub-nav">
-        
-        
-          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
-        
-        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
-      </nav>
-      <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
-      </div>
-    </div>
-  </div>
-</header>
-
-      <div class="outer">
-        <section id="main">
   
-    <article id="post-drupal-7-DC-1-靶场测试" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2025/09/27/drupal-7-DC-1-%E9%9D%B6%E5%9C%BA%E6%B5%8B%E8%AF%95/" class="article-date">
-  <time class="dt-published" datetime="2025-09-27T14:24:02.000Z" itemprop="datePublished">2025-09-27</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2025/09/27/drupal-7-DC-1-%E9%9D%B6%E5%9C%BA%E6%B5%8B%E8%AF%95/">drupal 7 DC-1 靶场测试</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
+    <ul class="card-archive-list">
       
-        <h1 id="drupal-7-DC-1靶场渗透记录"><a href="#drupal-7-DC-1靶场渗透记录" class="headerlink" title="drupal 7 DC-1靶场渗透记录"></a>drupal 7 DC-1靶场渗透记录</h1><p>信息收集部分节约时间的话可以在火狐安装wappalyzer  插件 可直接查看网站的一些信息 不过信息很少</p>
-<h2 id="一：信息收集"><a href="#一：信息收集" class="headerlink" title="一：信息收集"></a>一：信息收集</h2><p>先用nmap扫描网段192.168.56.0上存货的主机，去找到攻击的机器，扫描完主机后扫描目标ip上是否有可用的端口信息，当存货的主机很多难以判断时我们可以通过mac地址去判断，mac地址就相当于计算机的身份证，扫描到的信息上可以看到这个web服务的框架，是drupal 7版本的，可以去网上查一下是否有现成的漏洞，找现成的exp去打</p>
-<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927223531793.png" alt="屏幕截图 2025-09-25 144559"></p>
-<p>这里扫出来的端口没有一个有用的</p>
-<p>充分利用工具，除了扫描端口之外还可以用目录扫描工具看一下有没有可以访问的文件去提取一下i信息</p>
-<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927223743873.png" alt="屏幕截图 2025-09-25 145025"></p>
-<p>根据扫到的存活主机进入到主站</p>
-<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927223814013.png" alt="屏幕截图 2025-09-25 145123"></p>
-<p>主站有一个登录框，这里是动态的，和后端数据库存在交互，可以尝试sql注入一下，用万能钥匙爆破，也可以弱密码爆破（不过要小心ip被ban）</p>
-<p>在主站看一下相关功能，看有没有可以利用的来获得信息的功能，这里有一个注册账号功能，可以注册一个账户看看，还有一个修改密码的功能，不过没有邮箱，利用率不大</p>
-<h1 id="二，利用msf进行exp"><a href="#二，利用msf进行exp" class="headerlink" title="二，利用msf进行exp"></a>二，利用msf进行exp</h1><p>这里主站是一个drupal系统，存在很久了，网上肯定有相关的漏洞exp，这里我了解了一个工具，msf，可以帮助我们利用现成的exp直接进行漏洞利用</p>
-<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927223850354.png" alt="屏幕截图 2025-09-25 151531"></p>
-<p>我在网上查了一下，drupal最严重的漏洞就是远程代码执漏洞，所以我直接选了模板1，先打试试看</p>
-<p>用模板一的exp打了后成功了，提示我们没有payload输入，先看一看参数，将参数设置好</p>
-<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927223923428.png" alt="屏幕截图 2025-09-25 152906"></p>
-<p>设置好参数直接run就行，这里我们就拿到了代码执行权限，但是权限还不够，很多命令不能执行，我们接着到处看看，可以去各个目录查下文件，比如配置文件之列的这里我打开了flag1给的提示是去看配置文件，我对这个系统不了解，去网上查了一下drupal中的配置文件，说的是settings.php,我们匹配查找一下</p>
-<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927223953348.png" alt="屏幕截图 2025-09-25 154115"></p>
-<p>这里我在home目录下找到了一个flag4，但是权限不够，接下来就是提权，先直接进入shell里面试一下，看看用户的权限够不够</p>
-<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224033918.png" alt="屏幕截图 2025-09-25 154538"></p>
-<p>flag4打开是一堆没有用的信息</p>
-<p>匹配找一下配置文件，看一下有没有网络上对应的</p>
-<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224106084.png" alt="屏幕截图 2025-09-25 155053"></p>
-<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224124352.png" alt="屏幕截图 2025-09-25 160256"></p>
-<p>在配置文件里面找到了数据库信息，我们可以尝试登录数据库</p>
-<p>这里我利用msf的简化终端直接登录发现命令根本没有响应，想推出时又报错sql语法与问题，交互环境已经混淆了，我只能推出重新开始，通过which python发现目标上安装了python，那么我们可以利用python的库进行shell升级，升级为bash下的标准交互接口，看能不能连上数据库</p>
-<p>python -c ‘import pty; pty.spawn(“&#x2F;bin&#x2F;bash”)’</p>
-<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224152936.png" alt="屏幕截图 2025-09-25 162633"></p>
-<p>这里切换为标准的交互环境后终于进入了数据库，</p>
-<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224225192.png" alt="屏幕截图 2025-09-25 163058"></p>
-<p>数据库中的数据，这里有一个admin用户，但是密码根本看不懂，应该是某个hash值，我用cmd5去比对了一下，一个对的都没有，目前唯一的手段就是去网上找这个系统的数据库的hash方式，我去网上输入关键词drupal hash查了一下发现drupal7的md5加密方式并不是直接进行加密，还添加了其他东西，但是我看到一篇文章说这个系统自带了一个脚本文件来生成该系统特别的hash值，推出数据库去找了一下确实存在这么一个脚本</p>
-<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224248275.png" alt="屏幕截图 2025-09-25 170831"></p>
-<p>查看一下文件权限，发现普通用户都可以执行</p>
-<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224305935.png" alt="屏幕截图 2025-09-25 170851"></p>
-<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224322879.png" alt="屏幕截图 2025-09-25 171033"></p>
-<p>这里我直接再scripts目录下运行发现报错了，说少了配置文件，用find查找了一下配置文件的位置，发现他在和scripts同级的目录里面，所以这里就要返回到上级目录在执行</p>
-<p>密码123456</p>
-<p>执行后的hash值$S$DdxxUB8tDFD7p4ycL.SdGXMGiAj8YdRJ3CYxWj0ejQT61hjs0JHi</p>
-<p>接着就可以去更新数据库</p>
-<p>更新数据库重置密码后成功以管理员身份登录</p>
-<h1 id="三：权限提升"><a href="#三：权限提升" class="headerlink" title="三：权限提升"></a>三：权限提升</h1><p>which find</p>
-<p>find  &#x2F; -perm -u&#x3D;s -type f 2&gt;&#x2F;dev&#x2F;null</p>
-<p>查找特殊权限的文件并将错误输出扔掉</p>
-<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224348435.png" alt="屏幕截图 2025-09-25 171624"></p>
-<p>这里查到了很多都可以，发现find也可以，那么可以去网上搜find提权的脚本</p>
-<p>找到了以下一部分：</p>
-<p>find &#x2F; -name flag4 -exec ‘id’ ;</p>
-<p>find &#x2F; -name flag4 -exec ‘bin&#x2F;sh’ ;</p>
-<p>find &#x2F; -name flag4 -exec ‘bin&#x2F;sh’ -p;</p>
-<p>这里主要用find来提升权限，因为find是suid权限，用户在执行的时候是可以越权的，直接充当root，-name flag4 随便匹配一个系统的文件就可以了，重点是后面跟的exe代码，跟的都是root权限的命令，试一下看能不能提权</p>
-<p>提权后看能不能进入root目录，如果可以进入就成功了</p>
-<p>后面试了试find提权一直显示是普通用户但是尝试了一下进入root，可以进入，ls一下就可以看到flag5</p>
-<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224418693.png" alt="屏幕截图 2025-09-25 174251"></p>
-
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/project/archives/2025/09/">
+            <span class="card-archive-list-date">
+              九月 2025
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
       
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2025/09/27/drupal-7-DC-1-%E9%9D%B6%E5%9C%BA%E6%B5%8B%E8%AF%95/" data-id="cuidnvfeGr0J8MAjapCpFsNkR" data-title="drupal 7 DC-1 靶场测试" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-123132132" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2025/09/27/123132132/" class="article-date">
-  <time class="dt-published" datetime="2025-09-27T08:34:44.000Z" itemprop="datePublished">2025-09-27</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2025/09/27/123132132/">123132132</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2025/09/27/123132132/" data-id="cuid7yJFh178ZNMhEN5FvNTa9" data-title="123132132" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-hello-world" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2025/09/27/hello-world/" class="article-date">
-  <time class="dt-published" datetime="2025-09-27T07:38:00.308Z" itemprop="datePublished">2025-09-27</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2025/09/27/hello-world/">Hello World</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2025/09/27/hello-world/" data-id="cuidQIN_iJuuTIQeYmfK05jt1" data-title="Hello World" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-
-
-</section>
-        
-          <aside id="sidebar">
-  
-    
-
-  
-    
-
-  
-    
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Archives</h3>
-    <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/09/">September 2025</a></li></ul>
-    </div>
-  </div>
-
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Recent Posts</h3>
-    <div class="widget">
-      <ul>
-        
-          <li>
-            <a href="/2025/09/27/drupal-7-DC-1-%E9%9D%B6%E5%9C%BA%E6%B5%8B%E8%AF%95/">drupal 7 DC-1 靶场测试</a>
-          </li>
-        
-          <li>
-            <a href="/2025/09/27/123132132/">123132132</a>
-          </li>
-        
-          <li>
-            <a href="/2025/09/27/hello-world/">Hello World</a>
-          </li>
-        
-      </ul>
-    </div>
-  </div>
-
-  
-</aside>
-        
-      </div>
-      <footer id="footer">
-  
-  <div class="outer">
-    <div id="footer-info" class="inner">
-      
-      &copy; 2025 John Doe<br>
-      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
-    </div>
-  </div>
-</footer>
-
-    </div>
-    <nav id="mobile-nav">
-  
-    <a href="/" class="mobile-nav-link">Home</a>
-  
-    <a href="/archives" class="mobile-nav-link">Archives</a>
-  
-</nav>
-    
-
-
-<script src="/js/jquery-3.6.4.min.js"></script>
-
-
-
-  
-<script src="/fancybox/jquery.fancybox.min.js"></script>
-
-
-
-
-<script src="/js/script.js"></script>
-
-
-
-
-
-  </div>
-</body>
-</html>
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">1</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2025-09-27T15:29:13.055Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 By inyyy</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.0.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/project/js/utils.js"></script><script src="/project/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

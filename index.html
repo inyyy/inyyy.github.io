@@ -93,11 +93,63 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        
+        <h1 id="drupal-7-DC-1靶场渗透记录"><a href="#drupal-7-DC-1靶场渗透记录" class="headerlink" title="drupal 7 DC-1靶场渗透记录"></a>drupal 7 DC-1靶场渗透记录</h1><p>信息收集部分节约时间的话可以在火狐安装wappalyzer  插件 可直接查看网站的一些信息 不过信息很少</p>
+<h2 id="一：信息收集"><a href="#一：信息收集" class="headerlink" title="一：信息收集"></a>一：信息收集</h2><p>先用nmap扫描网段192.168.56.0上存货的主机，去找到攻击的机器，扫描完主机后扫描目标ip上是否有可用的端口信息，当存货的主机很多难以判断时我们可以通过mac地址去判断，mac地址就相当于计算机的身份证，扫描到的信息上可以看到这个web服务的框架，是drupal 7版本的，可以去网上查一下是否有现成的漏洞，找现成的exp去打</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927223531793.png" alt="屏幕截图 2025-09-25 144559"></p>
+<p>这里扫出来的端口没有一个有用的</p>
+<p>充分利用工具，除了扫描端口之外还可以用目录扫描工具看一下有没有可以访问的文件去提取一下i信息</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927223743873.png" alt="屏幕截图 2025-09-25 145025"></p>
+<p>根据扫到的存活主机进入到主站</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927223814013.png" alt="屏幕截图 2025-09-25 145123"></p>
+<p>主站有一个登录框，这里是动态的，和后端数据库存在交互，可以尝试sql注入一下，用万能钥匙爆破，也可以弱密码爆破（不过要小心ip被ban）</p>
+<p>在主站看一下相关功能，看有没有可以利用的来获得信息的功能，这里有一个注册账号功能，可以注册一个账户看看，还有一个修改密码的功能，不过没有邮箱，利用率不大</p>
+<h1 id="二，利用msf进行exp"><a href="#二，利用msf进行exp" class="headerlink" title="二，利用msf进行exp"></a>二，利用msf进行exp</h1><p>这里主站是一个drupal系统，存在很久了，网上肯定有相关的漏洞exp，这里我了解了一个工具，msf，可以帮助我们利用现成的exp直接进行漏洞利用</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927223850354.png" alt="屏幕截图 2025-09-25 151531"></p>
+<p>我在网上查了一下，drupal最严重的漏洞就是远程代码执漏洞，所以我直接选了模板1，先打试试看</p>
+<p>用模板一的exp打了后成功了，提示我们没有payload输入，先看一看参数，将参数设置好</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927223923428.png" alt="屏幕截图 2025-09-25 152906"></p>
+<p>设置好参数直接run就行，这里我们就拿到了代码执行权限，但是权限还不够，很多命令不能执行，我们接着到处看看，可以去各个目录查下文件，比如配置文件之列的这里我打开了flag1给的提示是去看配置文件，我对这个系统不了解，去网上查了一下drupal中的配置文件，说的是settings.php,我们匹配查找一下</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927223953348.png" alt="屏幕截图 2025-09-25 154115"></p>
+<p>这里我在home目录下找到了一个flag4，但是权限不够，接下来就是提权，先直接进入shell里面试一下，看看用户的权限够不够</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224033918.png" alt="屏幕截图 2025-09-25 154538"></p>
+<p>flag4打开是一堆没有用的信息</p>
+<p>匹配找一下配置文件，看一下有没有网络上对应的</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224106084.png" alt="屏幕截图 2025-09-25 155053"></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224124352.png" alt="屏幕截图 2025-09-25 160256"></p>
+<p>在配置文件里面找到了数据库信息，我们可以尝试登录数据库</p>
+<p>这里我利用msf的简化终端直接登录发现命令根本没有响应，想推出时又报错sql语法与问题，交互环境已经混淆了，我只能推出重新开始，通过which python发现目标上安装了python，那么我们可以利用python的库进行shell升级，升级为bash下的标准交互接口，看能不能连上数据库</p>
+<p>python -c ‘import pty; pty.spawn(“&#x2F;bin&#x2F;bash”)’</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224152936.png" alt="屏幕截图 2025-09-25 162633"></p>
+<p>这里切换为标准的交互环境后终于进入了数据库，</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224225192.png" alt="屏幕截图 2025-09-25 163058"></p>
+<p>数据库中的数据，这里有一个admin用户，但是密码根本看不懂，应该是某个hash值，我用cmd5去比对了一下，一个对的都没有，目前唯一的手段就是去网上找这个系统的数据库的hash方式，我去网上输入关键词drupal hash查了一下发现drupal7的md5加密方式并不是直接进行加密，还添加了其他东西，但是我看到一篇文章说这个系统自带了一个脚本文件来生成该系统特别的hash值，推出数据库去找了一下确实存在这么一个脚本</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224248275.png" alt="屏幕截图 2025-09-25 170831"></p>
+<p>查看一下文件权限，发现普通用户都可以执行</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224305935.png" alt="屏幕截图 2025-09-25 170851"></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224322879.png" alt="屏幕截图 2025-09-25 171033"></p>
+<p>这里我直接再scripts目录下运行发现报错了，说少了配置文件，用find查找了一下配置文件的位置，发现他在和scripts同级的目录里面，所以这里就要返回到上级目录在执行</p>
+<p>密码123456</p>
+<p>执行后的hash值$S$DdxxUB8tDFD7p4ycL.SdGXMGiAj8YdRJ3CYxWj0ejQT61hjs0JHi</p>
+<p>接着就可以去更新数据库</p>
+<p>更新数据库重置密码后成功以管理员身份登录</p>
+<h1 id="三：权限提升"><a href="#三：权限提升" class="headerlink" title="三：权限提升"></a>三：权限提升</h1><p>which find</p>
+<p>find  &#x2F; -perm -u&#x3D;s -type f 2&gt;&#x2F;dev&#x2F;null</p>
+<p>查找特殊权限的文件并将错误输出扔掉</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224348435.png" alt="屏幕截图 2025-09-25 171624"></p>
+<p>这里查到了很多都可以，发现find也可以，那么可以去网上搜find提权的脚本</p>
+<p>找到了以下一部分：</p>
+<p>find &#x2F; -name flag4 -exec ‘id’ ;</p>
+<p>find &#x2F; -name flag4 -exec ‘bin&#x2F;sh’ ;</p>
+<p>find &#x2F; -name flag4 -exec ‘bin&#x2F;sh’ -p;</p>
+<p>这里主要用find来提升权限，因为find是suid权限，用户在执行的时候是可以越权的，直接充当root，-name flag4 随便匹配一个系统的文件就可以了，重点是后面跟的exe代码，跟的都是root权限的命令，试一下看能不能提权</p>
+<p>提权后看能不能进入root目录，如果可以进入就成功了</p>
+<p>后面试了试find提权一直显示是普通用户但是尝试了一下进入root，可以进入，ls一下就可以看到flag5</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250927224418693.png" alt="屏幕截图 2025-09-25 174251"></p>
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2025/09/27/drupal-7-DC-1-%E9%9D%B6%E5%9C%BA%E6%B5%8B%E8%AF%95/" data-id="cuidEJF38n_6lMdtzq0rkF0RF" data-title="drupal 7 DC-1 靶场测试" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2025/09/27/drupal-7-DC-1-%E9%9D%B6%E5%9C%BA%E6%B5%8B%E8%AF%95/" data-id="cuidnvfeGr0J8MAjapCpFsNkR" data-title="drupal 7 DC-1 靶场测试" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -135,7 +187,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2025/09/27/123132132/" data-id="cuidw_azztJ4IQ26rB1UsMYBu" data-title="123132132" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2025/09/27/123132132/" data-id="cuid7yJFh178ZNMhEN5FvNTa9" data-title="123132132" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -186,7 +238,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2025/09/27/hello-world/" data-id="cuidWQpdzI5DLhqaI9Y1k_Td1" data-title="Hello World" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2025/09/27/hello-world/" data-id="cuidQIN_iJuuTIQeYmfK05jt1" data-title="Hello World" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       

